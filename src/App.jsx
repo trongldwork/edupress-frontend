@@ -1,19 +1,41 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Footer from './components/Footer/Footer'
-import { Account } from '@toolpad/core'
-import AccountMenu from './components/AccountMenu/AccountMenu'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./App.css";
+import { routes } from "./routes";
+import UserBasePage from "./pages/BasePage/UserBasePage";
+import userServices from "./services/userServices";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "./redux/userStore";
+import { useEffect } from "react";
+import { handleGetAccessToken } from "./services/axiosJWT";
 
 function App() {
 
   return (
     <>
-      <AccountMenu/>
-      <Footer/>
+      <BrowserRouter>
+        <Routes>
+          {routes.map((route) => {
+            const Page = route.page;
+            if (!route.adminManage) {
+              return (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={<UserBasePage><Page /></UserBasePage>}
+                />
+              );
+            } else return (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.page}
+                />
+              );
+          })}
+        </Routes>
+      </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
