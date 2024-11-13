@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState } from "react";
+import { css } from "@emotion/react";
 import BasePadding from "../../components/BasePadding/BasePadding";
 import {
   BreadcrumbWrapper,
@@ -8,19 +9,45 @@ import {
 } from "./styled";
 import {
   Box,
+  FormControl,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
   Typography,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+  Pagination,
   Breadcrumbs,
   Link,
   CircularProgress,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import HorizontalCourseCard from "../../components/CourseCard/HorizontalCourseCard";
 import { useNavigate } from "react-router-dom";
+import courseServices from "../../services/courseServices";
+import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
+import { handleGetAccessToken } from "../../services/axiosJWT";
 
 function MyCourses() {
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const accessToken = handleGetAccessToken();
+
+  const { data: courses = [], isPending } = useQuery(
+    {
+      queryKey: ["my-courses"],
+      queryFn: () => courseServices.getMyCourses(accessToken),
+      enabled: true,
+      keepPreviousData: true,
+      retry: 3,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/">
@@ -30,6 +57,13 @@ function MyCourses() {
       My Courses
     </Typography>,
   ];
+
+  //Vào trang đăng nhập khi chưa có access token
+  useEffect(() => {
+    if (!accessToken) {
+      navigate("/sign-in");
+    }
+  }, [accessToken, navigate]);
 
   return (
     <PageContainer>
