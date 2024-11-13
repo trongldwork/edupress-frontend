@@ -12,12 +12,12 @@ import {
     InputAdornment,
     Grid2,
   } from "@mui/material";
-//   import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+  import NavigateNextIcon from "@mui/icons-material/NavigateNext";
   import { Visibility, VisibilityOff } from "@mui/icons-material";
-//   import BasePadding from "../../components/BasePadding/BasePadding";
-//   import { useMutation } from "@tanstack/react-query";
-//   import userService from "../../services/userServices.js";
-//   import { BreadcrumbWrapper } from "./styled";
+  import BasePadding from "../../components/BasePadding/BasePadding";
+  import { useMutation } from "@tanstack/react-query";
+  import userService from "../../services/userServices.js";
+  import { BreadcrumbWrapper } from "./styled";
 
 
   function SignUp() {
@@ -52,20 +52,20 @@ import {
     });
 
     // Mutation for form submission
-    // const { mutate, isPending, isSuccess, isError, error } = useMutation({
-    //     mutationKey: ['registerUser'],
-    //     mutationFn: async (formData) => {
-    //     await userService.register(formData);
-    //     },
-    //     onSuccess: (data) => {
-    //     setSuccessMessage("Registration successful!");
-    //     setErrorMessage("");
-    //     },
-    //     onError: (error) => {
-    //     setErrorMessage(error.response?.data?.message || "Registration failed.");
-    //     setSuccessMessage("");
-    //     },
-    // });
+    const { mutate, isPending, isSuccess, isError, error } = useMutation({
+        mutationKey: ['registerUser'],
+        mutationFn: async (formData) => {
+        await userService.register(formData);
+        },
+        onSuccess: (data) => {
+        setSuccessMessage("Registration successful!");
+        setErrorMessage("");
+        },
+        onError: (error) => {
+        setErrorMessage(error.response?.data?.message || "Registration failed.");
+        setSuccessMessage("");
+        },
+    });
 
     // Function to handle form submission
     const handleRegister = (e) => {
@@ -125,7 +125,7 @@ import {
             </Box>
           )}
     
-          {/* <BreadcrumbWrapper>
+          <BreadcrumbWrapper>
             <Breadcrumbs
               separator={<NavigateNextIcon fontSize="small" />}
               aria-label="breadcrumb"
@@ -134,7 +134,7 @@ import {
             </Breadcrumbs>
           </BreadcrumbWrapper>
     
-          <BasePadding paddingLeftRightPercent={20}> */}
+          <BasePadding paddingLeftRightPercent={20}>
             <Box
               sx={{
                 borderRadius: "16px",
@@ -270,7 +270,7 @@ import {
                 </Grid2>
               </form>
             </Box>
-          {/* </BasePadding> */}
+          </BasePadding>
         </Box>
       );
   }
