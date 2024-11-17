@@ -50,5 +50,19 @@ export const routes = [
     { 
         path: '*',
         page: NotFoundPage
+    },
+    { 
+        path: '/admin/dashboard',
+        page: AdminHomePage,
+        showInDashBoardLayout: true,
+        title: 'DashBoard',
+        adminManage: true
+    },
+    { 
+        path: '/admin/course-management',
+        page: ListCoursePage,
+        showInDashBoardLayout: true,
+        title: 'Quản lý khoá học',
+        adminManage: true
     }
 ]
