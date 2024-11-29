@@ -2,8 +2,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import { routes } from "./routes";
 import UserBasePage from "./pages/BasePage/UserBasePage";
-import UserBasePage from "./pages/BasePage/BasePage";
-import "./App.css";
+import userServices from "./services/userServices";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "./redux/userStore";
+import { useEffect } from "react";
+import { handleGetAccessToken } from "./services/axiosJWT";
+import DashBoardLayout from "./components/Layouts/DashBoardLayout";
 
 function App() {
   const user = useSelector((state) => state.user);
@@ -48,7 +52,11 @@ function App() {
                 <Route
                   key={route.path}
                   path={route.path}
-                  element={route.page}
+                  element={
+                    <DashBoardLayout>
+                      <Page />
+                    </DashBoardLayout>
+                  }
                 />
               );
           })}

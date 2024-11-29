@@ -52,6 +52,10 @@ export default function AccountMenu({ user }) {
     navigate(`/user/profile`); // Chuyển hướng đến trang hồ sơ
   };
 
+  const handleToAdmin = async () => {
+    navigate(`/admin/dashboard`); // Chuyển hướng đến trang hồ sơ
+  };
+
   return (
     <React.Fragment>
       {/* Vùng chứa avatar và nút mở menu */}
@@ -119,7 +123,7 @@ export default function AccountMenu({ user }) {
 
         {/* Mục quản lý hệ thống chỉ hiện với người dùng Admin */}
         {user?.role === "Admin" && (
-          <MenuItem onClick={handleClose}>
+          <MenuItem onClick={handleToAdmin}>
             <ListItemIcon>
               <Settings fontSize="small" />
             </ListItemIcon>
