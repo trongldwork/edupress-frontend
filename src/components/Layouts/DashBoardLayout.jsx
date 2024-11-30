@@ -18,7 +18,14 @@ function DashBoardLayout({ children }) {
   return (
     <>
       <UserHeader />
-      <Stack direction="row" height={"calc(100vh - 72px)"}>
+      <Stack
+        direction="row"
+        height={"calc(100vh - 72px)"}
+        sx={(theme) => ({
+          backgroundColor: theme.palette.background.default,
+          overflow: "auto",
+        })}
+      >
         <Card
           sx={{
             width: 240,
