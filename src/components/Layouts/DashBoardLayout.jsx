@@ -50,7 +50,7 @@ function DashBoardLayout({ children }) {
           </List>
         </Card>
 
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Box component="main" sx={{ flexGrow: 1, height: "100%", width: "100%" }}>
           {children}
         </Box>
       </Stack>
