@@ -13,9 +13,17 @@ import {
   InputAdornment,
   Grid2,
 } from "@mui/material";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import BasePadding from "../../components/BasePadding/BasePadding";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
+import userService from "../../services/userServices.js";
+import { BreadcrumbWrapper } from "./styled";
 import {useDispatch} from 'react-redux';
+import { setUser } from "../../redux/userStore.js";
+import userServices from "../../services/userServices.js";
+import { handleGetAccessToken } from "../../services/axiosJWT.js";
 
 function Login() {
   const dispatch = useDispatch();
@@ -49,6 +57,21 @@ function Login() {
       [e.target.name]: e.target.value,
     });
 
+  const { mutate, data ,isPending, isSuccess, isError } = useMutation({
+    mutationFn: async (formData) => {
+      return await userService.login(formData);
+    },
+    onSuccess: () => {
+      setSnackbarMessage("Login successful!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.message || "Login failed.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    },
+  });
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -59,7 +82,23 @@ function Login() {
     setOpenSnackbar(false);
   };
 
-
+  const handleGetUserProfile = async (accessToken) => {
+    try{
+        const data = await userServices.getUserProfile(accessToken);       
+        dispatch(setUser({ ...data, accessToken: accessToken }));
+    }catch(e){
+      console.log(e.message);
+    }
+  };
+  
+  useEffect(() => {
+    if (isSuccess) {
+      localStorage.setItem('access_token', JSON.stringify(data?.accessToken));
+      const accessToken = handleGetAccessToken();
+      handleGetUserProfile(accessToken);      
+      navigate(returnUrl);
+    }
+  }, [isSuccess]);
 
 
   return (
@@ -83,6 +122,16 @@ function Login() {
         </Box>
       )}
 
+      <BreadcrumbWrapper>
+        <Breadcrumbs
+          separator={<NavigateNextIcon fontSize="small" />}
+          aria-label="breadcrumb"
+        >
+          {breadcrumbs}
+        </Breadcrumbs>
+      </BreadcrumbWrapper>
+
+      <BasePadding paddingLeftRightPercent={20}>
         <Box
           sx={{
             borderRadius: "16px",
@@ -156,6 +205,7 @@ function Login() {
             </Grid2>
           </form>
         </Box>
+      </BasePadding>
 
       <Snackbar
         open={openSnackbar}
