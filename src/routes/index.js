@@ -9,6 +9,7 @@ import MyCourses from "../pages/MyCourse/MyCourses"
 import AdminHomePage from "../pages/Admin/AdminHomePage"
 import ListCoursePage from "../pages/Admin/CourseManage/ListCoursePage"
 import { Title } from "@mui/icons-material"
+import UserManagePage from "../pages/Admin/UserManage/UserManagePage"
 export const routes = [
     {
         path: '/sign-in',
@@ -67,6 +68,13 @@ export const routes = [
         page: ListCoursePage,
         showInDashBoardLayout: true,
         title: 'Quản lý khoá học',
+        adminManage: true
+    },
+    { 
+        path: '/admin/user-management',
+        page: UserManagePage,
+        showInDashBoardLayout: true,
+        title: 'Quản lý người dùng',
         adminManage: true
     }
 ]
