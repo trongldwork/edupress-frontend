@@ -31,7 +31,20 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
   const [imagePreview, setImagePreview] = useState("");
 
   const levelOptions = ["Beginner", "Intermediate", "Advanced"];
-  const categoryOptions = ["Programming", "Design", "Business", "Marketing"];
+  const categoryOptions = [
+    "Art & Design",
+    "Communication",
+    "Content Writing",
+    "Data Science",
+    "Development",
+    "Finance",
+    "Marketing",
+    "Network",
+    "Photography",
+    "Science",
+    "Videography",
+    "Web Development",
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,17 +92,17 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name) newErrors.name = "Tên khóa học không được để trống";
-    if (!formData.category) newErrors.category = "Danh mục không được để trống";
-    if (!formData.level) newErrors.level = "Cấp độ không được để trống";
-    if (!formData.price) newErrors.price = "Giá không được để trống";
+    if (!formData.name) newErrors.name = "Course name cannot be empty";
+    if (!formData.category) newErrors.category = "Category cannot be empty";
+    if (!formData.level) newErrors.level = "Level cannot be empty";
+    if (!formData.price) newErrors.price = "Price cannot be empty";
     if (formData.price && isNaN(formData.price))
-      newErrors.price = "Giá phải là số";
+      newErrors.price = "Price must be a number";
     if (formData.discountPrice && isNaN(formData.discountPrice))
-      newErrors.discountPrice = "Giá khuyến mãi phải là số";
-    if (!formData.image) newErrors.image = "Hình ảnh không được để trống";
+      newErrors.discountPrice = "Discount price must be a number";
+    if (!formData.image) newErrors.image = "Image cannot be empty";
     if (!formData.description)
-      newErrors.description = "Mô tả không được để trống";
+      newErrors.description = "Description cannot be empty";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -109,7 +122,7 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
       formDataToSend.append("image", formData.image);
       formDataToSend.append("description", formData.description);
 
-      // Gọi hàm onSubmit được truyền từ component cha
+      // Call onSubmit passed from the parent component
       await onSubmit(formDataToSend);
     } catch (error) {
       console.error("Error creating course:", error);
@@ -118,11 +131,11 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Form thêm mới khóa học</DialogTitle>
+      <DialogTitle>New Course Form</DialogTitle>
       <DialogContent>
         <Stack spacing={2} p={2}>
           <TextField
-            label="Tên khóa học"
+            label="Course Name"
             name="name"
             value={formData.name}
             onChange={handleChange}
@@ -133,7 +146,7 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
 
           <TextField
             select
-            label="Danh mục"
+            label="Category"
             name="category"
             value={formData.category}
             onChange={handleChange}
@@ -150,7 +163,7 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
 
           <TextField
             select
-            label="Cấp độ"
+            label="Level"
             name="level"
             value={formData.level}
             onChange={handleChange}
@@ -166,7 +179,7 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
           </TextField>
 
           <TextField
-            label="Giá"
+            label="Price"
             name="price"
             type="number"
             value={formData.price}
@@ -177,7 +190,7 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
           />
 
           <TextField
-            label="Giá khuyến mãi"
+            label="Discount Price"
             name="discountPrice"
             type="number"
             value={formData.discountPrice}
@@ -196,7 +209,7 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
                 onChange={handleImageChange}
               />
               <Button variant="contained" component="span">
-                Upload Hình ảnh
+                Upload Image
               </Button>
             </label>
             {errors.image && (
@@ -216,7 +229,7 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
           </Box>
 
           <TextField
-            label="Mô tả"
+            label="Description"
             name="description"
             value={formData.description}
             onChange={handleChange}
@@ -230,10 +243,10 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={handleClose}>
-          Hủy
+          Cancel
         </Button>
         <Button variant="contained" onClick={handleSubmit}>
-          Lưu
+          Save
         </Button>
       </DialogActions>
     </Dialog>

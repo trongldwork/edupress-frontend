@@ -1,67 +1,111 @@
 import {
-  TableContainer,
   Box,
-  Table,
-  TableCell,
-  TableHead,
-  TableRow,
-  Typography,
-  Card,
-  TableBody,
-  Checkbox,
   Button,
   Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Snackbar,
   Alert,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashBoardLayout from "../../../components/Layouts/DashBoardLayout";
 import React, { useEffect, useState } from "react";
 import courseServices from "../../../services/courseServices";
 import CourseFormDialog from "./CourseFormDialog";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useDispatch } from "react-redux";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { handleGetAccessToken } from "../../../services/axiosJWT";
 
 function ListCoursePage() {
+  const dispatch = useDispatch;
   const [courses, setCourses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [open, setOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  useEffect(() => {
-    getAllCourse();
-  }, []);
+  const accessToken = handleGetAccessToken();
 
-  const getAllCourse = async () => {
-    try {
-      const data = await courseServices.getCourses();
-      setCourses(data.courses);
-    } catch (error) {
-      handleShowSnackbar("Lỗi tải danh sách khóa học", "error");
+  const { data: coursesData, refetch: refetchCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: async () => {
+      const response = await courseServices.getCourses({
+        page: 1,
+        limit: Infinity,
+      });
+      return response.courses;
+    },
+  });
+
+  useEffect(() => {
+    if (coursesData) {
+      setCourses(coursesData);
     }
-  };
+  }, [coursesData]);
+
+  // Mutation for adding a new course
+  const createCourseMutation = useMutation({
+    mutationFn: async (courseData) => {
+      const accessToken = handleGetAccessToken();
+      return await courseServices.createCourse(accessToken, courseData);
+    },
+    onSuccess: (response) => {
+      setCourses((prevCourses) => [...prevCourses, response.data]);
+      handleShowSnackbar("Course added successfully", "success");
+      setOpen(false);
+      refetchCourses();
+    },
+    onError: (error) => {
+      handleShowSnackbar(
+        error.response?.data?.message || "Failed to add course",
+        "error"
+      );
+    },
+  });
 
   const handleAddCourse = async (courseData) => {
-    try {
-      // Gọi API để tạo khóa học mới
-      const newCourse = await courseServices.createCourse(courseData);
+    createCourseMutation.mutate(courseData);
+  };
 
-      // Cập nhật danh sách khóa học ngay trên giao diện
-      setCourses((prevCourses) => [...prevCourses, newCourse]);
+  const handleEdit = (course) => {
+    setSelectedCourse(course);
+    setOpen(true);
+  };
 
-      // Đóng dialog và hiển thị thông báo thành công
-      setOpen(false);
-      handleShowSnackbar("Thêm khóa học thành công", "success");
-    } catch (error) {
-      // Xử lý lỗi và hiển thị thông báo lỗi
-      handleShowSnackbar("Lỗi thêm khóa học", "error");
+  const handleDelete = (course) => {
+    setCourseToDelete(course);
+    setOpenDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (courseToDelete) {
+      try {
+        await courseServices.deleteCourse(courseToDelete.id);
+        setCourses(courses.filter((c) => c.id !== courseToDelete.id));
+        handleShowSnackbar("Course deleted successfully", "success");
+      } catch (error) {
+        handleShowSnackbar("Failed to delete course", "error");
+      }
     }
+    setOpenDeleteDialog(false);
+    setCourseToDelete(null);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+    setCourseToDelete(null);
   };
 
   const handleShowSnackbar = (message, severity) => {
@@ -74,52 +118,107 @@ function ListCoursePage() {
     setOpenSnackbar(false);
   };
 
+  const handleDialogClose = () => {
+    setOpen(false);
+    setSelectedCourse(null);
+  };
+
   const columns = [
     {
       field: "id",
-      headerName: "STT",
-      width: 50,
+      headerName: "ID",
       align: "center",
       headerAlign: "center",
+      flex: 1,
     },
     {
       field: "name",
-      headerName: "Tên khoá học",
-      width: 200,
+      headerName: "Course Name",
       headerAlign: "center",
+      flex: 5,
     },
     {
       field: "description",
-      headerName: "Mô tả",
-      width: 200,
+      headerName: "Description",
       headerAlign: "center",
+      flex: 3,
     },
     {
       field: "category",
-      headerName: "Danh mục",
-      width: 100,
+      headerName: "Category",
+      align: "center",
       headerAlign: "center",
+      flex: 3,
     },
     {
       field: "level",
-      headerName: "Cấp độ",
-      width: 100,
+      headerName: "Level",
+      flex: 3,
       align: "center",
       headerAlign: "center",
     },
     {
       field: "price",
-      headerName: "Giá",
+      headerName: "Price",
       width: 100,
       align: "center",
       headerAlign: "center",
+      flex: 2,
     },
     {
       field: "discountPrice",
-      headerName: "Giá Sale",
-      width: 100,
+      headerName: "Sale Price",
       align: "center",
       headerAlign: "center",
+      flex: 2,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 2,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+            width: "100%",
+          }}
+        >
+          <Tooltip title="Edit">
+            <IconButton
+              size="small"
+              color="primary"
+              onClick={() => handleEdit(params.row)}
+            >
+              <EditIcon
+                sx={{
+                  fontSize: 20,
+                  color: "primary.main",
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Delete">
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => handleDelete(params.row)}
+            >
+              <DeleteIcon
+                sx={{
+                  fontSize: 20,
+                  color: "error.main",
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
     },
   ];
 
@@ -150,7 +249,6 @@ function ListCoursePage() {
         <DataGrid
           rows={rows}
           columns={columns}
-          checkboxSelection
           disableRowSelectionOnClick
           onRowSelectionModelChange={(newSelection) => {
             setSelectedCourses(newSelection);
@@ -160,10 +258,33 @@ function ListCoursePage() {
 
       <CourseFormDialog
         open={open}
-        handleClose={() => setOpen(false)}
+        handleClose={handleDialogClose}
         courseServices={courseServices}
         onSubmit={handleAddCourse}
+        initialData={selectedCourse}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this course? This action cannot be
+            undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={confirmDelete} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={openSnackbar}
@@ -179,35 +300,6 @@ function ListCoursePage() {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-
-      {/* <Dialog open={open}>
-        <DialogTitle>Form thêm mới khoá học</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} p={2}>
-            <TextField label="Tên khoá học" />
-            <TextField label="Danh mục" />
-            <TextField label="Cấp độ" />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              setOpen(false);
-            }}
-          >
-            Huỷ
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              alert("tính năng đang phát triển");
-            }}
-          >
-            Lưu
-          </Button>
-        </DialogActions>
-      </Dialog> */}
     </Box>
   );
 }
