@@ -19,14 +19,10 @@ import courseServices from "../../../services/courseServices";
 import CourseFormDialog from "./CourseFormDialog";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useDispatch } from "react-redux";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { handleGetAccessToken } from "../../../services/axiosJWT";
 
 function ListCoursePage() {
-  const dispatch = useDispatch;
   const [courses, setCourses] = useState([]);
-  const [selectedCourses, setSelectedCourses] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -35,8 +31,6 @@ function ListCoursePage() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-
-  const accessToken = handleGetAccessToken();
 
   const { data: coursesData, refetch: refetchCourses } = useQuery({
     queryKey: ["courses"],
@@ -54,30 +48,6 @@ function ListCoursePage() {
       setCourses(coursesData);
     }
   }, [coursesData]);
-
-  // Mutation for adding a new course
-  const createCourseMutation = useMutation({
-    mutationFn: async (courseData) => {
-      const accessToken = handleGetAccessToken();
-      return await courseServices.createCourse(accessToken, courseData);
-    },
-    onSuccess: (response) => {
-      setCourses((prevCourses) => [...prevCourses, response.data]);
-      handleShowSnackbar("Course added successfully", "success");
-      setOpen(false);
-      refetchCourses();
-    },
-    onError: (error) => {
-      handleShowSnackbar(
-        error.response?.data?.message || "Failed to add course",
-        "error"
-      );
-    },
-  });
-
-  const handleAddCourse = async (courseData) => {
-    createCourseMutation.mutate(courseData);
-  };
 
   const handleEdit = (course) => {
     setSelectedCourse(course);
@@ -260,7 +230,6 @@ function ListCoursePage() {
         open={open}
         handleClose={handleDialogClose}
         courseServices={courseServices}
-        onSubmit={handleAddCourse}
         initialData={selectedCourse}
       />
 

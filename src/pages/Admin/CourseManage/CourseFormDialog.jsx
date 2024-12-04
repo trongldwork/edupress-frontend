@@ -11,12 +11,14 @@ import {
   Box,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useMutation } from "@tanstack/react-query";
+import { handleGetAccessToken } from "../../../services/axiosJWT";
 
 const Input = styled("input")({
   display: "none",
 });
 
-function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
+function CourseFormDialog({ open, handleClose, courseServices }) {
   const [formData, setFormData] = useState({
     name: "",
     urlSlug: "",
@@ -29,6 +31,38 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState("");
+
+  const createCourseMutation = useMutation({
+    mutationFn: async (courseData) => {
+      const accessToken = handleGetAccessToken();
+      return await courseServices.createCourse(courseData, accessToken);
+    },
+    onSuccess: (response) => {
+      setCourses((prevCourses) => [...prevCourses, response.data]);
+      handleShowSnackbar("Course added successfully", "success");
+      setOpen(false);
+      refetchCourses();
+    },
+    onError: (error) => {
+      handleShowSnackbar(
+        error.response?.data?.message || "Failed to add course",
+        "error"
+      );
+    },
+  });
+
+  const handleAddCourse = async (courseData) => {
+    const formData = new FormData();
+    formData.append("name", courseData.name);
+    formData.append("urlSlug", courseData.urlSlug);
+    formData.append("category", courseData.category);
+    formData.append("level", courseData.level);
+    formData.append("price", courseData.price);
+    formData.append("discountPrice", courseData.discountPrice);
+    formData.append("image", courseData.image);
+    formData.append("description", courseData.description);
+    createCourseMutation.mutate(formData);
+  };
 
   const levelOptions = ["Beginner", "Intermediate", "Advanced"];
   const categoryOptions = [
@@ -112,18 +146,8 @@ function CourseFormDialog({ open, handleClose, courseServices, onSubmit }) {
     if (!validateForm()) return;
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("urlSlug", generateUrlSlug(formData.name));
-      formDataToSend.append("category", formData.category);
-      formDataToSend.append("level", formData.level);
-      formDataToSend.append("price", formData.price);
-      formDataToSend.append("discountPrice", formData.discountPrice || 0);
-      formDataToSend.append("image", formData.image);
-      formDataToSend.append("description", formData.description);
-
-      // Call onSubmit passed from the parent component
-      await onSubmit(formDataToSend);
+      console.log(formData);
+      await handleAddCourse(formData);
     } catch (error) {
       console.error("Error creating course:", error);
     }

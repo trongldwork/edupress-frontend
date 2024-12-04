@@ -46,7 +46,7 @@ const createCourse = async (formData, accessToken) => {
     formData,
     {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`, 
         "Content-Type": "multipart/form-data",
       },
     }
