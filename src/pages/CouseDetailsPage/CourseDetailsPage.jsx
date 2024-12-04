@@ -102,7 +102,8 @@ function CourseDetailsPage() {
 
   const { data: lessons = [], isPendingGetLessons } = useQuery({
     queryKey: ["lessons", user?.userName, course?._id],
-    queryFn: () => lessonService.getLessons(user?.accessToken || "", course?._id),
+    queryFn: () =>
+      lessonService.getLessons(user?.accessToken || "", course?._id),
     enabled: !!course?._id,
     keepPreviousData: true,
     retry: 3,
@@ -367,7 +368,15 @@ function CourseDetailsPage() {
                         >
                           <Typography>{lesson?.title}</Typography>
                         </AccordionSummary>
-                        <AccordionDetails sx={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+
+                        <AccordionDetails
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "15px",
+                          }}
+                        >
+
                           {lesson?.videos?.map((video) => (
                             <VideoInfoWrapper key={video?.url || video?.title}>
                               <VideoTitleWrapper>
@@ -415,6 +424,10 @@ function CourseDetailsPage() {
                                   year: "numeric",
                                   month: "long",
                                   day: "2-digit",
+
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+
                                 })}
                               </div>
                               {review?.userId?.email === user?.email && (
