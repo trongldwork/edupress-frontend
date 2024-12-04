@@ -1,4 +1,3 @@
-// UserManagePage.jsx
 import React, { useState, useEffect } from "react";
 import {
     Box,
@@ -19,6 +18,9 @@ import {
     Select,
     MenuItem,
     IconButton,
+    Snackbar,
+    Alert,
+    LinearProgress
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import userAPI from "../../../services/userServices";
@@ -36,6 +38,8 @@ function UserManagePage() {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [newUserDialog, setNewUserDialog] = useState(false);
 
+    const [snackbars, setSnackbars] = useState([]);
+
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -48,9 +52,55 @@ function UserManagePage() {
         try {
             const response = await userAPI.getUsers();
             setUsers(response.users);
+            enqueueSnackbar("Users fetched successfully", "success");
         } catch (error) {
             console.error("Error fetching users:", error);
+            enqueueSnackbar(
+                `Error fetching users: ${error.response?.data?.message || error.message}`,
+                "error"
+            );
         }
+    };
+
+    const enqueueSnackbar = (message, severity = "success") => {
+        const newSnackbar = {
+            id: new Date().getTime(),
+            message,
+            severity,
+            progress: 100
+        };
+    
+        setSnackbars((prev) => [...prev, newSnackbar]);
+    
+        const progressInterval = setInterval(() => {
+            setSnackbars((prev) =>
+                prev.map((sb) => {
+                    if (sb.id === newSnackbar.id) {
+                        const newProgress = Math.max(0, sb.progress - 10);
+                        if (newProgress === 0) {
+                            clearInterval(progressInterval);
+                            closeSnackbar(sb.id); // Đóng sau khi hoàn tất
+                        }
+                        return { ...sb, progress: newProgress };
+                    }
+                    return sb;
+                })
+            );
+        }, 200);
+    };
+    
+
+    const closeSnackbar = (id) => {
+        setSnackbars((prev) => prev.filter((snackbar) => snackbar.id !== id));
+    };
+
+    const handleChangePage = (_, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     const handleFilter = () => {
@@ -72,27 +122,23 @@ function UserManagePage() {
         setFilteredUsers(result);
     };
 
-    const handleChangePage = (_, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
     const handleSaveUser = async (user) => {
         try {
             if (user._id) {
                 await userAPI.editUserProfile(user);
+                enqueueSnackbar("User updated successfully", "success");
             } else {
-                // add default password for new user
                 user.password = "123456";
                 await userAPI.createUser(user);
+                enqueueSnackbar("User created successfully", "success");
             }
             fetchUsers();
         } catch (error) {
             console.error("Error saving user:", error);
+            enqueueSnackbar(
+                `Error saving user: ${error.response?.data?.message || error.message}`,
+                "error"
+            );
         }
         setOpenEditDialog(false);
         setNewUserDialog(false);
@@ -101,9 +147,14 @@ function UserManagePage() {
     const handleDeleteUser = async (id) => {
         try {
             await userAPI.deleteUser(id);
+            enqueueSnackbar("User deleted successfully", "success");
             fetchUsers();
         } catch (error) {
             console.error("Error deleting user:", error);
+            enqueueSnackbar(
+                `Error deleting user: ${error.response?.data?.message || error.message}`,
+                "error"
+            );
         }
         setOpenDeleteDialog(false);
     };
@@ -343,6 +394,58 @@ function UserManagePage() {
                     </Button>
                 </DialogActions>
             </Dialog>
+            {snackbars.map((snackbar) => (
+                <Snackbar
+                    key={snackbar.id}
+                    anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right"
+                    }}
+                    open={true}
+                    autoHideDuration={2000}
+                    onClose={() => closeSnackbar(snackbar.id)}
+                    sx={{
+                        mb: `${snackbars.indexOf(snackbar) * 60}px`,
+                        transition: 'margin-bottom 0.3s ease-in-out',
+                        zIndex: snackbars.length - snackbars.indexOf(snackbar)
+                    }}
+                >
+                    <Alert
+                        onClose={() => closeSnackbar(snackbar.id)}
+                        severity={snackbar.severity}
+                        sx={{
+                            width: "100%",
+                            position: 'relative',
+                            paddingBottom: '4px' // Thêm padding để chừa chỗ cho progress bar
+                        }}
+                    >
+                        {snackbar.message}
+                        <LinearProgress
+                            variant="determinate"
+                            value={snackbar.progress || 100}
+                            sx={{
+                                position: 'absolute',
+                                left: 0,
+                                bottom: 0,
+                                width: '100%',
+                                height: '4px', // Làm mỏng progress bar
+                                backgroundColor: 'transparent',
+                                '& .MuiLinearProgress-bar': {
+                                    backgroundColor: (theme) =>
+                                        snackbar.severity === 'error'
+                                            ? theme.palette.error.main
+                                            : snackbar.severity === 'warning'
+                                                ? theme.palette.warning.main
+                                                : snackbar.severity === 'info'
+                                                    ? theme.palette.info.main
+                                                    : theme.palette.success.main
+                                }
+                            }}
+                        />
+                    </Alert>
+                </Snackbar>
+            ))}
+
         </Box>
     );
 }
