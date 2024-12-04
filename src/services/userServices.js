@@ -5,7 +5,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 // Đăng nhập
 const login = async ({ userName, password }) => {
-  const response = await axios.post(`${apiUrl}/user/login`, { userName, password });
+  const response = await axios.post(`${apiUrl}/user/login`, { userName, password }, { withCredentials: true });
   return response.data;
 };
 

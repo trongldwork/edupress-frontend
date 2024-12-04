@@ -8,6 +8,7 @@ import ProfilePage from "../pages/ProfilePage/ProfilePage"
 import MyCourses from "../pages/MyCourse/MyCourses"
 import AdminHomePage from "../pages/Admin/AdminHomePage"
 import ListCoursePage from "../pages/Admin/CourseManage/ListCoursePage"
+import BlogPage from "../pages/BlogPage/BlogPage"
 import { Title } from "@mui/icons-material"
 import UserManagePage from "../pages/Admin/UserManage/UserManagePage"
 export const routes = [
@@ -29,6 +30,11 @@ export const routes = [
     {
         path: '/courses',
         page: CoursesPage,
+        adminManage: false
+    },
+    {
+        path: '/blog',
+        page: BlogPage,
         adminManage: false
     },
     {
