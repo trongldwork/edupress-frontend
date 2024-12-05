@@ -79,12 +79,22 @@ const updateCourse = async (courseId, formData, accessToken) => {
 
 // Admin: Xóa một khóa học
 const deleteCourse = async (courseId, accessToken) => {
-  const response = await axiosJWT.delete(`${apiUrl}/course/admin/${courseId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  return response.data;
+  try {
+    console.log('Service - Deleting course:', courseId);
+    const response = await axiosJWT.delete(
+      `${apiUrl}/course/admin/${courseId}`, 
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Service error:', error.response?.data || error.message);
+    throw error;
+  }
 };
-
 // Admin: Lấy danh sách người dùng đã đăng ký vào khóa học
 const getRegisteredUsers = async (courseId, accessToken) => {
   const response = await axiosJWT.get(

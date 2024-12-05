@@ -13,21 +13,19 @@ import {
 import { styled } from "@mui/material/styles";
 import { useMutation } from "@tanstack/react-query";
 import { handleGetAccessToken } from "../../../services/axiosJWT";
+import { useEffect } from "react";
 
 const Input = styled("input")({
   display: "none",
 });
 
-function CourseFormDialog({
+function CourseEditDialog({
   open,
   handleClose,
   courseServices,
   refetchCourses,
+  initialData,
 }) {
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-
   const [formData, setFormData] = useState({
     name: "",
     urlSlug: "",
@@ -41,62 +39,56 @@ function CourseFormDialog({
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState("");
 
-  const handleShowSnackbar = (message, severity) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setOpenSnackbar(true);
-  };
+  useEffect(() => {
+    if (initialData) {
+      console.log("initialData", initialData);
+      setImagePreview(initialData.image || "");
+      setFormData({
+        name: initialData.name || "",
+        urlSlug: initialData.urlSlug || "",
+        category: initialData.category || "",
+        level: initialData.level || "",
+        price: initialData.price || "",
+        discountPrice: initialData.discountPrice || "",
+        image: setImagePreview,
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData]);
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
-  const createCourseMutation = useMutation({
-    mutationFn: async (courseData) => {
+  const updateCourseMutation = useMutation({
+    mutationFn: async () => {
       const accessToken = handleGetAccessToken();
-      return await courseServices.createCourse(courseData, accessToken);
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("urlSlug", generateUrlSlug(formData.name));
+      data.append("category", formData.category);
+      data.append("level", formData.level);
+      data.append("price", formData.price);
+      data.append("discountPrice", formData.discountPrice);
+      if (formData.image) data.append("image", formData.image);
+      data.append("description", formData.description);
+      return await courseServices.updateCourse(
+        initialData._id,
+        data,
+        accessToken
+      );
     },
-    onSuccess: async () => {
-      handleShowSnackbar("Course added successfully", "success");
-      console.log("Refetching courses...");
-      await refetchCourses();
+    onSuccess: () => {
       handleClose();
-      resetForm();
+      refetchCourses();
     },
     onError: (error) => {
-      handleShowSnackbar(
-        error.response?.data?.message || "Failed to add course",
-        "error"
-      );
+      console.error("Failed to update course:", error);
+      setErrors({
+        general: error.response?.data?.message || "Failed to update course",
+      });
     },
   });
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      urlSlug: "",
-      category: "",
-      level: "",
-      price: "",
-      discountPrice: "",
-      image: null,
-      description: "",
-    });
-    setImagePreview("");
-    setErrors({});
-  };
-
-  const handleAddCourse = async (courseData) => {
-    const formData = new FormData();
-    formData.append("name", courseData.name);
-    formData.append("urlSlug", courseData.urlSlug);
-    formData.append("category", courseData.category);
-    formData.append("level", courseData.level);
-    formData.append("price", courseData.price);
-    formData.append("discountPrice", courseData.discountPrice);
-    formData.append("image", courseData.image);
-    formData.append("description", courseData.description);
-    createCourseMutation.mutate(formData);
+  const handleSubmit = () => {
+    if (!validateForm()) return;
+    updateCourseMutation.mutate();
   };
 
   const levelOptions = ["Beginner", "Intermediate", "Advanced"];
@@ -143,6 +135,22 @@ function CourseFormDialog({
     }
   };
 
+  const generateUrlSlug = (name) => {
+    return name
+      .toLowerCase()
+      .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, "a")
+      .replace(/[èéẹẻẽêềếệểễ]/g, "e")
+      .replace(/[ìíịỉĩ]/g, "i")
+      .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, "o")
+      .replace(/[ùúụủũưừứựửữ]/g, "u")
+      .replace(/[ỳýỵỷỹ]/g, "y")
+      .replace(/đ/g, "d")
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name) newErrors.name = "Course name cannot be empty";
@@ -161,20 +169,9 @@ function CourseFormDialog({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-
-    try {
-      console.log(formData);
-      await handleAddCourse(formData);
-    } catch (error) {
-      console.error("Error creating course:", error);
-    }
-  };
-
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>New Course Form</DialogTitle>
+      <DialogTitle>Edit Course Form</DialogTitle>
       <DialogContent>
         <Stack spacing={2} p={2}>
           <TextField
@@ -296,4 +293,4 @@ function CourseFormDialog({
   );
 }
 
-export default CourseFormDialog;
+export default CourseEditDialog;

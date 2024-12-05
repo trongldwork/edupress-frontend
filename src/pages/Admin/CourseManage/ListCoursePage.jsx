@@ -20,11 +20,14 @@ import CourseFormDialog from "./CourseFormDialog";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { handleGetAccessToken } from "../../../services/axiosJWT";
+import CourseEditDialog from "./CourseEditDialog";
 
 function ListCoursePage() {
   const [courses, setCourses] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [courseToEdit, setCourseToEdit] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
 
@@ -49,9 +52,19 @@ function ListCoursePage() {
     }
   }, [coursesData]);
 
-  const handleEdit = (course) => {
-    setSelectedCourse(course);
-    setOpen(true);
+  const handleOpenAddDialog = () => {
+    setOpenAddDialog(true);
+  };
+
+  const handleOpenEditDialog = (course) => {
+    setCourseToEdit(course);
+    setOpenEditDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenAddDialog(false);
+    setOpenEditDialog(false);
+    setCourseToEdit(null);
   };
 
   const handleDelete = (course) => {
@@ -59,15 +72,30 @@ function ListCoursePage() {
     setOpenDeleteDialog(true);
   };
 
+  const deleteCourseMutation = useMutation({
+    mutationFn: async (courseId) => {
+      const accessToken = handleGetAccessToken();
+      return await courseServices.deleteCourse(courseId, accessToken);
+    },
+    onSuccess: (response, courseId) => {
+      setCourses((prevCourses) =>
+        prevCourses.filter((c) => c._id !== courseId)
+      );
+      handleShowSnackbar("Course deleted successfully", "success");
+      refetchCourses();
+    },
+    onError: (error) => {
+      handleShowSnackbar(
+        error.response?.data?.message || "Failed to delete course",
+        "error"
+      );
+    },
+  });
+
+  // Hàm gọi mutation khi xác nhận xóa
   const confirmDelete = async () => {
     if (courseToDelete) {
-      try {
-        await courseServices.deleteCourse(courseToDelete.id);
-        setCourses(courses.filter((c) => c.id !== courseToDelete.id));
-        handleShowSnackbar("Course deleted successfully", "success");
-      } catch (error) {
-        handleShowSnackbar("Failed to delete course", "error");
-      }
+      deleteCourseMutation.mutate(courseToDelete._id);
     }
     setOpenDeleteDialog(false);
     setCourseToDelete(null);
@@ -86,11 +114,6 @@ function ListCoursePage() {
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
-  };
-
-  const handleDialogClose = () => {
-    setOpen(false);
-    setSelectedCourse(null);
   };
 
   const columns = [
@@ -162,7 +185,7 @@ function ListCoursePage() {
             <IconButton
               size="small"
               color="primary"
-              onClick={() => handleEdit(params.row)}
+              onClick={() => handleOpenEditDialog(params.row)}
             >
               <EditIcon
                 sx={{
@@ -194,7 +217,9 @@ function ListCoursePage() {
 
   const rows = courses.map((course, index) => ({
     id: index + 1,
+    _id: course._id,
     name: course.name,
+    image: course.image,
     description: course.description,
     category: course.category,
     level: course.level,
@@ -205,32 +230,28 @@ function ListCoursePage() {
   return (
     <Box>
       <Stack direction="row" justifyContent={"flex-end"} mb={2}>
-        <Button
-          variant="contained"
-          onClick={() => {
-            setOpen(true);
-          }}
-        >
+        <Button variant="contained" onClick={handleOpenAddDialog}>
           Add Course
         </Button>
       </Stack>
 
       <Box sx={{ height: "100%", width: "100%" }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          disableRowSelectionOnClick
-          onRowSelectionModelChange={(newSelection) => {
-            setSelectedCourses(newSelection);
-          }}
-        />
+        <DataGrid rows={rows} columns={columns} disableRowSelectionOnClick />
       </Box>
 
       <CourseFormDialog
-        open={open}
-        handleClose={handleDialogClose}
+        open={openAddDialog}
+        handleClose={handleCloseDialog}
         courseServices={courseServices}
-        initialData={selectedCourse}
+        refetchCourses={refetchCourses}
+      />
+
+      <CourseEditDialog
+        open={openEditDialog}
+        handleClose={handleCloseDialog}
+        courseServices={courseServices}
+        refetchCourses={refetchCourses}
+        initialData={courseToEdit}
       />
 
       {/* Delete Confirmation Dialog */}
