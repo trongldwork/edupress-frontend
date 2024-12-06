@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { isJsonString } from "../utils/utils.js";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 import userServices from './userServices.js';
 
 const axiosJWT = axios.create();
