@@ -31,12 +31,14 @@ function ListCoursePage() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
 
+  console.log(courses);
+  
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  const { data: coursesData, refetch: refetchCourses } = useQuery({
-    queryKey: ["courses"],
+  const { data: coursesData = [], refetch: refetchCourses } = useQuery({
+    queryKey: ["courses", "admin"],
     queryFn: async () => {
       const response = await courseServices.getCourses({
         page: 1,
@@ -215,7 +217,7 @@ function ListCoursePage() {
     },
   ];
 
-  const rows = courses.map((course, index) => ({
+  const rows = courses?.map((course, index) => ({
     id: index + 1,
     _id: course._id,
     name: course.name,
