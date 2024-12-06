@@ -368,6 +368,7 @@ function CourseDetailsPage() {
                         >
                           <Typography>{lesson?.title}</Typography>
                         </AccordionSummary>
+
                         <AccordionDetails
                           sx={{
                             display: "flex",
@@ -375,6 +376,7 @@ function CourseDetailsPage() {
                             gap: "15px",
                           }}
                         >
+
                           {lesson?.videos?.map((video) => (
                             <VideoInfoWrapper key={video?.url || video?.title}>
                               <VideoTitleWrapper>
@@ -422,8 +424,10 @@ function CourseDetailsPage() {
                                   year: "numeric",
                                   month: "long",
                                   day: "2-digit",
+
                                   hour: "2-digit",
                                   minute: "2-digit",
+
                                 })}
                               </div>
                               {review?.userId?.email === user?.email && (
