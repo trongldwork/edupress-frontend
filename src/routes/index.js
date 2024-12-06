@@ -10,6 +10,10 @@ import AdminHomePage from "../pages/Admin/AdminHomePage"
 import ListCoursePage from "../pages/Admin/CourseManage/ListCoursePage"
 import { Title } from "@mui/icons-material"
 import UserManagePage from "../pages/Admin/UserManage/UserManagePage"
+import ForgotPassword from "../pages/ResetPassword/ForgotPassword"
+import VerifyOTP from "../pages/ResetPassword/VerifyOTP"
+import ResetPassword from "../pages/ResetPassword/ResetPassword"
+
 export const routes = [
     {
         path: '/sign-in',
@@ -54,6 +58,21 @@ export const routes = [
     { 
         path: '*',
         page: NotFoundPage,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery',
+        page: ForgotPassword,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery/otp',
+        page: VerifyOTP,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery/reset-password',
+        page: ResetPassword,
         adminManage: false
     },
     { 
