@@ -58,7 +58,6 @@ function CourseFormDialog({
     },
     onSuccess: async () => {
       handleShowSnackbar("Course added successfully", "success");
-      console.log("Refetching courses...");
       await refetchCourses();
       handleClose();
       resetForm();
@@ -165,7 +164,6 @@ function CourseFormDialog({
     if (!validateForm()) return;
 
     try {
-      console.log(formData);
       await handleAddCourse(formData);
     } catch (error) {
       console.error("Error creating course:", error);
