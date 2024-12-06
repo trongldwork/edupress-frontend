@@ -53,9 +53,6 @@ function UserHeader() {
             <NavBox to="/blog">
               <NavItem to="/blog">Blog</NavItem>
             </NavBox>
-            <NavBox to="/page">
-              <NavItem to="/page">Page</NavItem>
-            </NavBox>
           </NavListWrapper>
 
           {user?.accessToken ? (

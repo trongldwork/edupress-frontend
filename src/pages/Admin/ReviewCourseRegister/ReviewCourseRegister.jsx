@@ -160,7 +160,7 @@ const ReviewCourseRegister = () => {
   
 
   return (
-    <Box sx={{ width: "100%", height: "100%" }}>
+    <Box sx={{ width: "100%", height: "100%", marginTop: '20px' }}>
       <Box
         m={0}
         p={0}
@@ -173,18 +173,14 @@ const ReviewCourseRegister = () => {
             borderBottom: "none",
           },
           "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.blueAccent[700],
             borderBottom: "none",
           },
           "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.primary[400],
           },
           "& .MuiDataGrid-footerContainer": {
             borderTop: "none",
-            backgroundColor: colors.primary[400],
           },
           "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
           },
           "& .MuiDataGrid-cell:focus": {
             outline: "none",

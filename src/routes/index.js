@@ -8,8 +8,14 @@ import ProfilePage from "../pages/ProfilePage/ProfilePage"
 import MyCourses from "../pages/MyCourse/MyCourses"
 import AdminHomePage from "../pages/Admin/AdminHomePage"
 import ListCoursePage from "../pages/Admin/CourseManage/ListCoursePage"
+import BlogPage from "../pages/BlogPage/BlogPage"
 import { Title } from "@mui/icons-material"
 import ReviewCourseRegister from "../pages/Admin/ReviewCourseRegister/ReviewCourseRegister"
+import UserManagePage from "../pages/Admin/UserManage/UserManagePage"
+import ForgotPassword from "../pages/ResetPassword/ForgotPassword"
+import VerifyOTP from "../pages/ResetPassword/VerifyOTP"
+import ResetPassword from "../pages/ResetPassword/ResetPassword"
+
 export const routes = [
     {
         path: '/sign-in',
@@ -29,6 +35,11 @@ export const routes = [
     {
         path: '/courses',
         page: CoursesPage,
+        adminManage: false
+    },
+    {
+        path: '/blog',
+        page: BlogPage,
         adminManage: false
     },
     {
@@ -57,6 +68,21 @@ export const routes = [
         adminManage: false
     },
     { 
+        path: '/account/recovery',
+        page: ForgotPassword,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery/otp',
+        page: VerifyOTP,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery/reset-password',
+        page: ResetPassword,
+        adminManage: false
+    },
+    { 
         path: '/admin/dashboard',
         page: AdminHomePage,
         showInDashBoardLayout: true,
@@ -75,6 +101,13 @@ export const routes = [
         page: ReviewCourseRegister,
         showInDashBoardLayout: true,
         title: 'Duyệt đăng ký khóa học',
+        adminManage: true
+    },
+    {
+        path: '/admin/user-management',
+        page: UserManagePage,
+        showInDashBoardLayout: true,
+        title: 'Quản lý người dùng',
         adminManage: true
     }
 ]
