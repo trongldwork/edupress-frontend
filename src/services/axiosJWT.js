@@ -20,7 +20,6 @@ axiosJWT.interceptors.request.use(
         const currentTime = new Date();
         const access_token = handleGetAccessToken();
         const decoded = jwtDecode(access_token);
-        
         if (decoded?.exp < currentTime.getTime() / 1000) {
           const data = await userServices.refreshToken();
           localStorage.setItem('access_token', JSON.stringify(data?.accessToken));
