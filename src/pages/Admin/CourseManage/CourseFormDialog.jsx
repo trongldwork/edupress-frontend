@@ -56,9 +56,9 @@ function CourseFormDialog({
       const accessToken = handleGetAccessToken();
       return await courseServices.createCourse(courseData, accessToken);
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       handleShowSnackbar("Course added successfully", "success");
-      await refetchCourses();
+      refetchCourses();
       handleClose();
       resetForm();
     },
