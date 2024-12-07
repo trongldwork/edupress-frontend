@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -14,11 +15,12 @@ import {
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashBoardLayout from "../../../components/Layouts/DashBoardLayout";
-import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import courseServices from "../../../services/courseServices";
 import CourseFormDialog from "./CourseFormDialog";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward"; // Icon điều hướng
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { handleGetAccessToken } from "../../../services/axiosJWT";
 import CourseEditDialog from "./CourseEditDialog";
@@ -34,6 +36,8 @@ function ListCoursePage() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const navigate = useNavigate(); // Khởi tạo navigate
 
   const { data: coursesData, refetch: refetchCourses } = useQuery({
     queryKey: ["courses"],
@@ -92,7 +96,6 @@ function ListCoursePage() {
     },
   });
 
-  // Hàm gọi mutation khi xác nhận xóa
   const confirmDelete = async () => {
     if (courseToDelete) {
       deleteCourseMutation.mutate(courseToDelete._id);
@@ -168,7 +171,7 @@ function ListCoursePage() {
     {
       field: "actions",
       headerName: "Actions",
-      flex: 2,
+      flex: 3, // Mở rộng cột để thêm nút
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (
@@ -206,6 +209,22 @@ function ListCoursePage() {
                 sx={{
                   fontSize: 20,
                   color: "error.main",
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+
+          {/* Nút điều hướng */}
+          <Tooltip title="Go to Edit Details">
+            <IconButton
+              size="small"
+              color="secondary"
+              onClick={() => navigate(`/course/${params.row._id}/edit`)} // Điều hướng đến trang EditCourseDetails
+            >
+              <ArrowForwardIcon
+                sx={{
+                  fontSize: 20,
+                  color: "secondary.main",
                 }}
               />
             </IconButton>

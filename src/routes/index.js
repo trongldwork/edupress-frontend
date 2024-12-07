@@ -11,6 +11,7 @@ import ListCoursePage from "../pages/Admin/CourseManage/ListCoursePage"
 import BlogPage from "../pages/BlogPage/BlogPage"
 import { Title } from "@mui/icons-material"
 import UserManagePage from "../pages/Admin/UserManage/UserManagePage"
+import EditCourseDetails from "../pages/CourseEdit/EditCourseDetails"
 export const routes = [
     {
         path: '/sign-in',
@@ -55,6 +56,11 @@ export const routes = [
     {
         path: '/my-courses',
         page: MyCourses,
+        adminManage: false
+    },
+    {
+        path: '/course/:courseId/edit',
+        page: EditCourseDetails,
         adminManage: false
     },
     { 
