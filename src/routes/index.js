@@ -12,6 +12,7 @@ import { Title } from "@mui/icons-material"
 import ForgotPassword from "../pages/ResetPassword/ForgotPassword"
 import VerifyOTP from "../pages/ResetPassword/VerifyOTP"
 import ResetPassword from "../pages/ResetPassword/ResetPassword"
+import PaymentPage from "../pages/PaymentPage/PaymentPage"
 export const routes = [
     {
         path: '/sign-in',
@@ -51,6 +52,11 @@ export const routes = [
     {
         path: '/my-courses',
         page: MyCourses,
+        adminManage: false
+    },
+    {
+        path: '/payment',
+        page: PaymentPage,
         adminManage: false
     },
     { 
