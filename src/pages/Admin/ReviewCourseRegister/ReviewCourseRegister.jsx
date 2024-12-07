@@ -1,19 +1,42 @@
-import React, { useState } from "react";
-import { Box, Typography, useTheme, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  useTheme,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "./theme";
-import { mockDataTeam } from "./mockData"; // Mock data dùng để test giao diện data-grid
+import axiosJWT from "../../../services/axiosJWT";
 
 const ReviewCourseRegister = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  // State để kiểm soát Dialog
+  const [registrations, setRegistrations] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
-  // Hàm xử lý khi nhấn Confirm hoặc Cancel
+  // Lấy dữ liệu từ API khi component được mount
+  useEffect(() => {
+    const fetchRegistrations = async () => {
+      try {
+        const response = await axiosJWT.get(
+          "http://localhost:8080/api/register-course/admin/registrations"
+        );
+        setRegistrations(response.data);
+      } catch (error) {
+        console.error("Error fetching registrations:", error);
+      }
+    };
+    fetchRegistrations();
+  }, []);
+
   const handleConfirm = (id) => {
     setSelectedAction("confirm");
     setSelectedId(id);
@@ -30,62 +53,48 @@ const ReviewCourseRegister = () => {
     setOpenDialog(false);
   };
 
-  const handleDialogConfirm = () => {
-    if (selectedAction === "confirm") {
-      const record = mockDataTeam.find((item) => item.id === selectedId);
-      if (record) {
-        record.access = "confirmed"; // Thay đổi trạng thái trong mockData
-      }
-    } else if (selectedAction === "cancel") {
-      const record = mockDataTeam.find((item) => item.id === selectedId);
-      if (record) {
-        record.access = "cancelled"; // Thay đổi trạng thái trong mockData
-      }
+  const handleDialogConfirm = async () => {
+    try {
+      await axiosJWT.patch(
+        `http://localhost:8080/api/register-course/admin/registrations/${selectedId}`,
+        {
+          status: selectedAction === "confirm" ? "Confirmed" : "Cancelled",
+        }
+      );
+      setRegistrations((prev) =>
+        prev.map((reg) =>
+          reg._id === selectedId
+            ? {
+                ...reg,
+                status: selectedAction === "confirm" ? "Confirmed" : "Cancelled",
+              }
+            : reg
+        )
+      );
+    } catch (error) {
+      console.error("Error updating status:", error);
+    } finally {
+      setOpenDialog(false);
     }
-
-    setOpenDialog(false); // Đóng dialog sau khi xác nhận
   };
 
   const columns = [
+    { field: "index", headerName: "#", width: 100 },
+    { field: "email", headerName: "Email", flex: 1 },
+    { field: "userName", headerName: "User Name", flex: 1 },
+    { field: "courseName", headerName: "Course Name", flex: 1 },
     {
-      field: "index",
-      headerName: "#",
-      width: 100,
-      renderCell: (params) => {
-        return <Typography>{params.row.id}</Typography>;
-      },
-    },
-    { field: "id", headerName: "Email" },
-    {
-      field: "name",
-      headerName: "User Name",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "phone",
-      headerName: "Course ID",
-      flex: 1,
-    },
-    {
-      field: "email",
-      headerName: "Course Name",
-      flex: 1,
-    },
-    {
-      field: "access",
+      field: "status",
       headerName: "Status",
       flex: 1,
-      renderCell: ({ row: { access } }) => {
-        let backgroundColor;
-        if (access === "confirmed") {
-          backgroundColor = colors.greenAccent[600];
-        } else if (access === "cancelled") {
-          backgroundColor = colors.redAccent[600];
-        } else {
-          backgroundColor = "orange";
-        }
-  
+      renderCell: ({ row: { status } }) => {
+        const backgroundColor =
+          status === "Confirmed"
+            ? colors.greenAccent[600]
+            : status === "Cancelled"
+            ? colors.redAccent[600]
+            : "orange";
+
         return (
           <Box
             width="60%"
@@ -96,7 +105,7 @@ const ReviewCourseRegister = () => {
             backgroundColor={backgroundColor}
             borderRadius="4px"
           >
-            <Typography color={colors.grey[100]}>{access}</Typography>
+            <Typography color={colors.grey[100]}>{status}</Typography>
           </Box>
         );
       },
@@ -106,7 +115,7 @@ const ReviewCourseRegister = () => {
       headerName: "Actions",
       flex: 1,
       renderCell: ({ row }) => {
-        if (row.access === "confirmed") {
+        if (row.status === "Confirmed") {
           return (
             <Box display="flex" justifyContent="center" alignItems="center">
               <Typography
@@ -118,7 +127,7 @@ const ReviewCourseRegister = () => {
               </Typography>
             </Box>
           );
-        } else if (row.access === "cancelled") {
+        } else if (row.status === "Cancelled") {
           return (
             <Box display="flex" justifyContent="center" alignItems="center">
               <Typography
@@ -137,7 +146,7 @@ const ReviewCourseRegister = () => {
                 variant="contained"
                 color="success"
                 size="small"
-                onClick={() => handleConfirm(row.id)}
+                onClick={() => handleConfirm(row._id)}
               >
                 Confirm
               </Button>
@@ -145,7 +154,7 @@ const ReviewCourseRegister = () => {
                 variant="contained"
                 color="error"
                 size="small"
-                onClick={() => handleCancel(row.id)}
+                onClick={() => handleCancel(row._id)}
               >
                 Cancel
               </Button>
@@ -155,60 +164,22 @@ const ReviewCourseRegister = () => {
       },
     },
   ];
-  
-  
-  
 
   return (
-    <Box sx={{ width: "100%", height: "100%", marginTop: '20px' }}>
-      <Box
-        m={0}
-        p={0}
-        height="100%"
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-          },
-          "& .MuiCheckbox-root": {
-          },
-          "& .MuiDataGrid-cell:focus": {
-            outline: "none",
-          },
-          "& .MuiDataGrid-row.Mui-selected": {
-            backgroundColor: "transparent",
-          },
-          "& .MuiDataGrid-row:focus": {
-            outline: "none",
-          },
-        }}
-      >
-        <DataGrid
-          rows={mockDataTeam}
-          columns={columns}
-          sx={{
-            height: "100%",
-            width: "100%",
-          }}
-        />
-      </Box>
+    <Box sx={{ width: "100%", height: "100%", marginTop: "20px" }}>
+      <DataGrid
+        rows={registrations}
+        columns={columns}
+        getRowId={(row) => row._id} // Sử dụng `_id` từ MongoDB làm `id`
+        sx={{ height: "100%", width: "100%" }}
+      />
 
-      {/* Dialog xác nhận */}
       <Dialog open={openDialog} onClose={handleDialogClose}>
         <DialogTitle>Confirm Action</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to {selectedAction === "confirm" ? "confirm" : "cancel"} this action?
+            Are you sure you want to{" "}
+            {selectedAction === "confirm" ? "confirm" : "cancel"} this action?
           </Typography>
         </DialogContent>
         <DialogActions>
