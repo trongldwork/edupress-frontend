@@ -22,14 +22,23 @@ const ReviewCourseRegister = () => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
-  // Lấy dữ liệu từ API khi component được mount
+  // Lấy dữ liệu từ API khi component được moun
   useEffect(() => {
     const fetchRegistrations = async () => {
       try {
         const response = await axiosJWT.get(
           "http://localhost:8080/api/register-course/admin/registrations"
         );
-        setRegistrations(response.data);
+      // Chuyển đổi dữ liệu từ JSON
+      const formattedData = response.data.map((item, index) => ({
+        _id: item._id,
+        index: index + 1, // Thêm số thứ tự
+        email: item.userId?.email || "N/A", // Lấy email từ userId
+        userName: item.userId?.userName || "N/A", // Lấy userName từ userId
+        courseName: item.courseId?.name || "N/A", // Lấy tên khóa học từ courseId
+        status: item.status || "Pending", // Trạng thái đăng ký
+      }));
+      setRegistrations(formattedData);
       } catch (error) {
         console.error("Error fetching registrations:", error);
       }
