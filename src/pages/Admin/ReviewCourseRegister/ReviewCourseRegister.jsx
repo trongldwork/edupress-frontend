@@ -11,7 +11,8 @@ import {
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "./theme";
-import axiosJWT from "../../../services/axiosJWT";
+import axiosJWT, { handleGetAccessToken } from "../../../services/axiosJWT";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const ReviewCourseRegister = () => {
   const theme = useTheme();
@@ -22,12 +23,14 @@ const ReviewCourseRegister = () => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
-  // Lấy dữ liệu từ API khi component được moun
+  // Lấy dữ liệu từ API khi component được mount
   useEffect(() => {
     const fetchRegistrations = async () => {
       try {
+        const _accessToken = handleGetAccessToken();
         const response = await axiosJWT.get(
-          "http://localhost:8080/api/register-course/admin/registrations"
+          `${apiUrl}/register-course/admin/registrations`,
+          { headers: { Authorization: `Bearer ${_accessToken}` } }
         );
       // Chuyển đổi dữ liệu từ JSON
       const formattedData = response.data.map((item, index) => ({
@@ -64,10 +67,14 @@ const ReviewCourseRegister = () => {
 
   const handleDialogConfirm = async () => {
     try {
+      const _accessToken = handleGetAccessToken();
       await axiosJWT.patch(
-        `http://localhost:8080/api/register-course/admin/registrations/${selectedId}`,
+        `${apiUrl}/register-course/admin/registrations/${selectedId}`,
         {
           status: selectedAction === "confirm" ? "Confirmed" : "Cancelled",
+        },
+        {
+          headers: { Authorization: `Bearer ${_accessToken}` },
         }
       );
       setRegistrations((prev) =>
