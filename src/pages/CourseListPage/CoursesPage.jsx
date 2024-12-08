@@ -64,29 +64,28 @@ function CoursesPage() {
     selectedReview,
     selectedLevel,
     currentPage,
-    coursesPerPage
+    coursesPerPage,
   ];
-  const {
-    data: { courses = [], totalCourses = 0 } = {},
-    isPending,
-  } = useQuery({
-    queryKey,
-    queryFn: () =>
-      courseServices.getCourses({
-        search: searchDebounce,
-        sort: sortOrder,
-        category: selectedCategory,
-        price: selectedPrice,
-        review: selectedReview,
-        level: selectedLevel,
-        page: currentPage,
-        limit: coursesPerPage,
-      }),
-    enabled: true,
-    keepPreviousData: true,
-    retry: 3,
-    refetchOnWindowFocus: false
-  });
+  const { data: { courses = [], totalCourses = 0 } = {}, isPending } = useQuery(
+    {
+      queryKey,
+      queryFn: () =>
+        courseServices.getCourses({
+          search: searchDebounce,
+          sort: sortOrder,
+          category: selectedCategory,
+          price: selectedPrice,
+          review: selectedReview,
+          level: selectedLevel,
+          page: currentPage,
+          limit: coursesPerPage,
+        }),
+      enabled: true,
+      keepPreviousData: true,
+      retry: 3,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -106,7 +105,7 @@ function CoursesPage() {
     selectedCategory,
     selectedPrice,
     selectedReview,
-    selectedLevel
+    selectedLevel,
   ]);
 
   const breadcrumbs = [
@@ -172,7 +171,7 @@ function CoursesPage() {
   const handlePageChange = (event, value) => {
     setCurrentPage(value); // Cập nhật trang hiện tại
   };
-  
+
   return (
     <PageContainer>
       <BreadcrumbWrapper>
