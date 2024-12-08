@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  CircularProgress,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashBoardLayout from "../../../components/Layouts/DashBoardLayout";
@@ -37,10 +38,12 @@ function ListCoursePage() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  const navigate = useNavigate(); // Khởi tạo navigate
-
-  const { data: coursesData, refetch: refetchCourses } = useQuery({
-    queryKey: ["courses"],
+  const {
+    data: coursesData = [],
+    isLoading,
+    refetch: refetchCourses,
+  } = useQuery({
+    queryKey: ["courses", "admin"],
     queryFn: async () => {
       const response = await courseServices.getCourses({
         page: 1,
@@ -156,7 +159,6 @@ function ListCoursePage() {
     {
       field: "price",
       headerName: "Price",
-      width: 100,
       align: "center",
       headerAlign: "center",
       flex: 2,
@@ -234,7 +236,7 @@ function ListCoursePage() {
     },
   ];
 
-  const rows = courses.map((course, index) => ({
+  const rows = courses?.map((course, index) => ({
     id: index + 1,
     _id: course._id,
     name: course.name,
@@ -254,8 +256,31 @@ function ListCoursePage() {
         </Button>
       </Stack>
 
-      <Box sx={{ height: "100%", width: "100%" }}>
-        <DataGrid rows={rows} columns={columns} disableRowSelectionOnClick />
+      <Box sx={{ height: "100%", width: "100%", position: "relative" }}>
+        {isLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(255, 255, 255 ,0.7)",
+              zIndex: 1,
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : null}
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          disableRowSelectionOnClick
+          loading={isLoading}
+        />
       </Box>
 
       <CourseFormDialog
@@ -283,8 +308,8 @@ function ListCoursePage() {
         <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this course? This action cannot be
-            undone.
+            Are you sure you want to delete "{courseToDelete?.name}" course?
+            This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

@@ -5,7 +5,11 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 // Đăng nhập
 const login = async ({ userName, password }) => {
-  const response = await axios.post(`${apiUrl}/user/login`, { userName, password }, { withCredentials: true });
+  const response = await axios.post(
+    `${apiUrl}/user/login`,
+    { userName, password },
+    { withCredentials: true }
+  );
   return response.data;
 };
 
@@ -38,7 +42,7 @@ const refreshToken = async () => {
 };
 
 // Cập nhật ảnh đại diện
-export const updateAvatar = async (accessToken, avatarFile) => {
+const updateAvatar = async (accessToken, avatarFile) => {
   const formData = new FormData();
   formData.append("avatarFile", avatarFile);
 
@@ -53,7 +57,7 @@ export const updateAvatar = async (accessToken, avatarFile) => {
 };
 
 // Cập nhật thông tin người dùng
-export const updateUserInfo = async (accessToken, updatedUser) => {
+const updateUserInfo = async (accessToken, updatedUser) => {
   const response = await axiosJWT.put(`${apiUrl}/user/update`, updatedUser, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -106,6 +110,38 @@ const editUserProfile = async (userData) => {
   return response.data;
 };
 
+const forgotPassword = async (email) => {
+  const res = await axios.post(`${apiUrl}/user/forgot-password/${email}`);
+  return res.data;
+}
+
+const verifyResetPasswordOTP = async (email, otp) => {
+  const res = await axios.post(`${apiUrl}/user/verify-reset-password-token/${email}`, {
+    OTP: otp
+  });
+  return res.data;
+}
+
+const resetPassword = async (email, otp, password) => {
+  const res = await axios.patch(`${apiUrl}/user/reset-password`, {
+    email,
+    verify_code: otp,
+    password
+  });
+  return res.data;
+}
+
+const changePassword = async (accessToken, currentPassword, newPassword) => {
+  const response = await axios.patch(`${apiUrl}/user/change-password`, {
+    currentPassword,
+    newPassword
+  }, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+
+  return response.data;
+}
+
 export default {
   login,
   register,
@@ -119,4 +155,8 @@ export default {
   getUsers,
   createUser,
   editUserProfile,
+  forgotPassword,
+  verifyResetPasswordOTP,
+  resetPassword,
+  changePassword
 };

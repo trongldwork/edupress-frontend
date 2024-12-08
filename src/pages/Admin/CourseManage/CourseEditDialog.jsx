@@ -9,6 +9,8 @@ import {
   TextField,
   MenuItem,
   Box,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useMutation } from "@tanstack/react-query";
@@ -26,8 +28,13 @@ function CourseEditDialog({
   refetchCourses,
   initialData,
 }) {
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
   const [formData, setFormData] = useState({
     name: "",
+    _id: "",
     urlSlug: "",
     category: "",
     level: "",
@@ -41,9 +48,9 @@ function CourseEditDialog({
 
   useEffect(() => {
     if (initialData) {
-      console.log("initialData", initialData);
       setImagePreview(initialData.image || "");
       setFormData({
+        _id: initialData._id || "",
         name: initialData.name || "",
         urlSlug: initialData.urlSlug || "",
         category: initialData.category || "",
@@ -56,33 +63,47 @@ function CourseEditDialog({
     }
   }, [initialData]);
 
+  const handleShowSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setOpenSnackbar(true);
+  };
+
   const updateCourseMutation = useMutation({
     mutationFn: async () => {
-      const accessToken = handleGetAccessToken();
-      const data = new FormData();
-      data.append("name", formData.name);
-      data.append("urlSlug", generateUrlSlug(formData.name));
-      data.append("category", formData.category);
-      data.append("level", formData.level);
-      data.append("price", formData.price);
-      data.append("discountPrice", formData.discountPrice);
-      if (formData.image) data.append("image", formData.image);
-      data.append("description", formData.description);
-      return await courseServices.updateCourse(
-        initialData._id,
-        data,
-        accessToken
-      );
+      try {
+        const accessToken = handleGetAccessToken();
+        const data = new FormData();
+
+        data.append("name", formData.name || "");
+        data.append("category", formData.category || "");
+        data.append("level", formData.level || "");
+        data.append("price", formData.price || "0");
+        data.append("discountPrice", formData.discountPrice || "0");
+        if (formData.image) data.append("image", formData.image); // Nếu có hình ảnh mới thì gửi
+        data.append("description", formData.description || "");
+
+        return await courseServices.updateCourse(
+          initialData._id,
+          data,
+          accessToken
+        );
+      } catch (error) {
+        throw new Error(
+          error.response?.data?.message || "Failed to update course"
+        );
+      }
     },
     onSuccess: () => {
+      handleShowSnackbar("Course updated successfully", "success");
       handleClose();
       refetchCourses();
     },
     onError: (error) => {
-      console.error("Failed to update course:", error);
-      setErrors({
-        general: error.response?.data?.message || "Failed to update course",
-      });
+      handleShowSnackbar(
+        error.response?.data?.message || "Failed to add course",
+        "error"
+      );
     },
   });
 
@@ -135,22 +156,6 @@ function CourseEditDialog({
     }
   };
 
-  const generateUrlSlug = (name) => {
-    return name
-      .toLowerCase()
-      .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, "a")
-      .replace(/[èéẹẻẽêềếệểễ]/g, "e")
-      .replace(/[ìíịỉĩ]/g, "i")
-      .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, "o")
-      .replace(/[ùúụủũưừứựửữ]/g, "u")
-      .replace(/[ỳýỵỷỹ]/g, "y")
-      .replace(/đ/g, "d")
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  };
-
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name) newErrors.name = "Course name cannot be empty";
@@ -169,127 +174,148 @@ function CourseEditDialog({
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Course Form</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} p={2}>
-          <TextField
-            label="Course Name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            error={!!errors.name}
-            helperText={errors.name}
-            fullWidth
-          />
+    <Box>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Course Form</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} p={2}>
+            <TextField
+              label="Course Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              error={!!errors.name}
+              helperText={errors.name}
+              fullWidth
+            />
 
-          <TextField
-            select
-            label="Category"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            error={!!errors.category}
-            helperText={errors.category}
-            fullWidth
-          >
-            {categoryOptions.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
+            <TextField
+              select
+              label="Category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              error={!!errors.category}
+              helperText={errors.category}
+              fullWidth
+            >
+              {categoryOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
 
-          <TextField
-            select
-            label="Level"
-            name="level"
-            value={formData.level}
-            onChange={handleChange}
-            error={!!errors.level}
-            helperText={errors.level}
-            fullWidth
-          >
-            {levelOptions.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
+            <TextField
+              select
+              label="Level"
+              name="level"
+              value={formData.level}
+              onChange={handleChange}
+              error={!!errors.level}
+              helperText={errors.level}
+              fullWidth
+            >
+              {levelOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
 
-          <TextField
-            label="Price"
-            name="price"
-            type="number"
-            value={formData.price}
-            onChange={handleChange}
-            error={!!errors.price}
-            helperText={errors.price}
-            fullWidth
-          />
+            <TextField
+              label="Price"
+              name="price"
+              type="number"
+              value={formData.price}
+              onChange={handleChange}
+              error={!!errors.price}
+              helperText={errors.price}
+              fullWidth
+            />
 
-          <TextField
-            label="Discount Price"
-            name="discountPrice"
-            type="number"
-            value={formData.discountPrice}
-            onChange={handleChange}
-            error={!!errors.discountPrice}
-            helperText={errors.discountPrice}
-            fullWidth
-          />
+            <TextField
+              label="Discount Price"
+              name="discountPrice"
+              type="number"
+              value={formData.discountPrice}
+              onChange={handleChange}
+              error={!!errors.discountPrice}
+              helperText={errors.discountPrice}
+              fullWidth
+            />
 
-          <Box>
-            <label htmlFor="image-upload">
-              <Input
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-              <Button variant="contained" component="span">
-                Upload Image
-              </Button>
-            </label>
-            {errors.image && (
-              <Box color="error.main" fontSize="small" mt={1}>
-                {errors.image}
-              </Box>
-            )}
-            {imagePreview && (
-              <Box mt={2}>
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  style={{ maxWidth: "100%", maxHeight: "200px" }}
+            <Box>
+              <label htmlFor="image-upload">
+                <Input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
                 />
-              </Box>
-            )}
-          </Box>
+                <Button variant="contained" component="span">
+                  Upload Image
+                </Button>
+              </label>
+              {errors.image && (
+                <Box color="error.main" fontSize="small" mt={1}>
+                  {errors.image}
+                </Box>
+              )}
+              {imagePreview && (
+                <Box mt={2}>
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{ maxWidth: "100%", maxHeight: "200px" }}
+                  />
+                </Box>
+              )}
+            </Box>
 
-          <TextField
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            error={!!errors.description}
-            helperText={errors.description}
-            multiline
-            rows={4}
-            fullWidth
-          />
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button variant="contained" onClick={handleSubmit}>
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
+            <TextField
+              label="Description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              error={!!errors.description}
+              helperText={errors.description}
+              multiline
+              rows={4}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }
 

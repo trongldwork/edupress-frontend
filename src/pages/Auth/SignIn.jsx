@@ -16,11 +16,11 @@ import {
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import BasePadding from "../../components/BasePadding/BasePadding";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 import userService from "../../services/userServices.js";
 import { BreadcrumbWrapper } from "./styled";
-import {useDispatch} from 'react-redux';
+import { useDispatch } from "react-redux";
 import { setUser } from "../../redux/userStore.js";
 import userServices from "../../services/userServices.js";
 import { handleGetAccessToken } from "../../services/axiosJWT.js";
@@ -35,11 +35,11 @@ function Login() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const returnUrl = new URLSearchParams(location.search).get("returnUrl") || "/"; // Default to home page
-  
+
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/">
       Homepage
@@ -48,6 +48,7 @@ function Login() {
       Login
     </Typography>,
   ];
+
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = (event) => event.preventDefault();
 
@@ -57,7 +58,7 @@ function Login() {
       [e.target.name]: e.target.value,
     });
 
-  const { mutate, data ,isPending, isSuccess, isError } = useMutation({
+  const { mutate, data, isPending, isSuccess, isError } = useMutation({
     mutationFn: async (formData) => {
       return await userService.login(formData);
     },
@@ -83,23 +84,27 @@ function Login() {
   };
 
   const handleGetUserProfile = async (accessToken) => {
-    try{
-        const data = await userServices.getUserProfile(accessToken);       
-        dispatch(setUser({ ...data, accessToken: accessToken }));
-    }catch(e){
+    try {
+      const data = await userServices.getUserProfile(accessToken);
+      dispatch(setUser({ ...data, accessToken: accessToken }));
+    } catch (e) {
       console.log(e.message);
     }
   };
-  
+
   useEffect(() => {
     if (isSuccess) {
-      localStorage.setItem('access_token', JSON.stringify(data?.accessToken));
+      localStorage.setItem("access_token", JSON.stringify(data?.accessToken));
       const accessToken = handleGetAccessToken();
-      handleGetUserProfile(accessToken);      
+      handleGetUserProfile(accessToken);
       navigate(returnUrl);
     }
   }, [isSuccess]);
 
+  // Điều hướng tới trang Forgot Password
+  const handleForgotPassword = () => {
+    navigate("/account/recovery");
+  };
 
   return (
     <Box sx={{ backgroundColor: "white", paddingBottom: "50px", position: "relative" }}>
@@ -123,10 +128,7 @@ function Login() {
       )}
 
       <BreadcrumbWrapper>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-        >
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
           {breadcrumbs}
         </Breadcrumbs>
       </BreadcrumbWrapper>
@@ -200,6 +202,18 @@ function Login() {
                   disabled={isPending}
                 >
                   Login
+                </Button>
+              </Grid2>
+
+              {/* Thêm nút Forgot Password */}
+              <Grid2 item textAlign="center">
+                <Button
+                  variant="text"
+                  color="primary"
+                  onClick={handleForgotPassword}
+                  style={{ marginTop: "10px" }}
+                >
+                  Forgot Password?
                 </Button>
               </Grid2>
             </Grid2>
