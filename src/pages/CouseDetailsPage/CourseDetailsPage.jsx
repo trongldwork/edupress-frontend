@@ -57,6 +57,7 @@ import { handleGetAccessToken } from "../../services/axiosJWT";
 import { useSelector } from "react-redux";
 import registerCourseService from "../../services/registerCourseService";
 import lessonService from "../../services/lessonService";
+import VideoDialog from "../../components/Video/VideoDialog";
 
 function CourseDetailsPage() {
   const user = useSelector((state) => state.user);
@@ -69,6 +70,9 @@ function CourseDetailsPage() {
   const [comment, setComment] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedReviewId, setSelectedReviewId] = useState(null);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  
 
   const accessToken = handleGetAccessToken();
 
@@ -159,6 +163,16 @@ function CourseDetailsPage() {
     });
   };
 
+  const handleOpenVideoDialog = (video) => {
+    setSelectedVideo(video);
+    setVideoDialogOpen(true);
+  };
+  
+  const handleCloseVideoDialog = () => {
+    setSelectedVideo(null);
+    setVideoDialogOpen(false);
+  };
+  
   const handleClickOpenDialog = (reviewId) => {
     setSelectedReviewId(reviewId);
     setOpenDialog(true);
@@ -367,6 +381,8 @@ function CourseDetailsPage() {
                           id="panel1-header"
                         >
                           <Typography>{lesson?.title}</Typography>
+                          <Typography variant="body2" color="textSecondary" gutterBottom width='50%' 
+                          textAlign='left' paddingLeft='20px'>{lesson?.description}</Typography>
                         </AccordionSummary>
 
                         <AccordionDetails
@@ -385,13 +401,12 @@ function CourseDetailsPage() {
                               </VideoTitleWrapper>
                               {video?.url && (
                                 <Button
-                                  variant="text"
-                                  onClick={() =>
-                                    window.open(video?.url, "_blank")
-                                  }
-                                >
-                                  Watch
-                                </Button>
+                                variant="text"
+                                onClick={() => handleOpenVideoDialog(video)}
+                              >
+                                Watch
+                              </Button>
+                              
                               )}
                             </VideoInfoWrapper>
                           ))}
@@ -531,6 +546,13 @@ function CourseDetailsPage() {
               </Button>
             </DialogActions>
           </Dialog>
+          <VideoDialog
+  open={videoDialogOpen}
+  onClose={handleCloseVideoDialog}
+  videoUrl={selectedVideo?.url}
+  title={selectedVideo?.title}
+/>
+
         </>
       )}
     </div>

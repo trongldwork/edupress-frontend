@@ -12,6 +12,7 @@ import BlogPage from "../pages/BlogPage/BlogPage"
 import { Title } from "@mui/icons-material"
 import ReviewCourseRegister from "../pages/Admin/ReviewCourseRegister/ReviewCourseRegister"
 import UserManagePage from "../pages/Admin/UserManage/UserManagePage"
+import EditCourseDetails from "../pages/CourseEdit/EditCourseDetails"
 import ForgotPassword from "../pages/ResetPassword/ForgotPassword"
 import VerifyOTP from "../pages/ResetPassword/VerifyOTP"
 import ResetPassword from "../pages/ResetPassword/ResetPassword"
@@ -60,6 +61,11 @@ export const routes = [
     {
         path: '/my-courses',
         page: MyCourses,
+        adminManage: false
+    },
+    {
+        path: '/course/:courseId/edit',
+        page: EditCourseDetails,
         adminManage: false
     },
     { 

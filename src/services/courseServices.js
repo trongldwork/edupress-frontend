@@ -14,7 +14,7 @@ const getCourses = async (queries) => {
 // Lấy chi tiết một khóa học theo URL slug
 const getCourse = async (urlSlug) => { 
   const response = await axios.get(`${apiUrl}/course/detail/url/${urlSlug}`);
-  
+  console.log('Service - getCourse:', response.data);
   return response.data;
 };
 
