@@ -6,42 +6,54 @@ import { PlayArrow, Pause, VolumeUp, VolumeOff, Fullscreen, FullscreenExit, Spee
 const VideoDialog = ({ open, onClose, videoUrl, title }) => {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [volume, setVolume] = useState(0.5); // 0 to 1 range
+  const [volume, setVolume] = useState(0.5);
   const [currentTime, setCurrentTime] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [totalPlayTime, setTotalPlayTime] = useState(0); // Tổng thời gian xem thực tế
-  const [playbackRate, setPlaybackRate] = useState(1); // Tốc độ phát
-  const [anchorEl, setAnchorEl] = useState(null); // Anchor for the speed menu
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false); // Điều khiển hiển thị slider âm lượng khi hover nút âm lượng
-  const [sliderTimeout, setSliderTimeout] = useState(null); // Timeout để ẩn slider sau 0.25s không hover
+  const [totalPlayTime, setTotalPlayTime] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [sliderTimeout, setSliderTimeout] = useState(null);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const playerRef = useRef(null);
   const videoContainerRef = useRef(null);
-  const volumeSliderRef = useRef(null); // Thêm ref cho slider âm lượng
+  const volumeSliderRef = useRef(null);
 
-  // Reset states when videoUrl changes
+  const localStorageKey = `video-${videoUrl}`;
+
+  // Load totalPlayTime từ localStorage khi videoUrl thay đổi
   useEffect(() => {
-    // Reset all states when video changes
+    const savedTime = localStorage.getItem(localStorageKey);
+    setTotalPlayTime(savedTime ? parseInt(savedTime, 10) : 0);
     setPlaying(false);
     setMuted(false);
     setVolume(0.5);
     setCurrentTime(0);
-    setTotalPlayTime(0);
     setIsFullScreen(false);
-    setPlaybackRate(1); // Reset playback speed
+    setPlaybackRate(1);
   }, [videoUrl]);
 
-  const togglePlayPause = () => {
-    setPlaying(!playing);
-  };
+  const videoDuration = playerRef.current?.getDuration() || 999999;
 
-  const toggleMute = () => {
-    setMuted(!muted);
-  };
+  // Lưu totalPlayTime vào localStorage khi giá trị thay đổi
+  useEffect(() => {
+    localStorage.setItem(localStorageKey, totalPlayTime);
+  }, [totalPlayTime]);
+  // set isCompleted khi totalPlayTime > 0.8 duration
 
-  const handleVolumeChange = (event, newValue) => {
-    setVolume(newValue);
-  };
+  useEffect(() => {
+    if (totalPlayTime > 0.8 * videoDuration) {
+      setIsCompleted(true);
+    } else {
+      setIsCompleted(false);
+    }
+  }, [totalPlayTime]);
+  const togglePlayPause = () => setPlaying(!playing);
+
+  const toggleMute = () => setMuted(!muted);
+
+  const handleVolumeChange = (event, newValue) => setVolume(newValue);
 
   const handleSeekChange = (event, newValue) => {
     if (playerRef.current) {
@@ -53,9 +65,8 @@ const VideoDialog = ({ open, onClose, videoUrl, title }) => {
     const elapsedTime = state.playedSeconds;
     setCurrentTime(elapsedTime);
 
-    // Cộng thời gian xem vào tổng thời gian chỉ khi video đang chạy
     if (playing) {
-      setTotalPlayTime(prevTime => prevTime + 1); // Cộng thời gian thực tế
+      setTotalPlayTime((prevTime) => prevTime + 1); // Cộng thời gian xem mỗi giây
     }
   };
 
@@ -63,84 +74,91 @@ const VideoDialog = ({ open, onClose, videoUrl, title }) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const toggleFullScreen = () => {
     if (!isFullScreen) {
       if (videoContainerRef.current.requestFullscreen) {
         videoContainerRef.current.requestFullscreen();
-      } else if (videoContainerRef.current.mozRequestFullScreen) { /* Firefox */
+      } else if (videoContainerRef.current.mozRequestFullScreen) {
         videoContainerRef.current.mozRequestFullScreen();
-      } else if (videoContainerRef.current.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+      } else if (videoContainerRef.current.webkitRequestFullscreen) {
         videoContainerRef.current.webkitRequestFullscreen();
-      } else if (videoContainerRef.current.msRequestFullscreen) { /* IE/Edge */
+      } else if (videoContainerRef.current.msRequestFullscreen) {
         videoContainerRef.current.msRequestFullscreen();
       }
     } else {
       if (document.exitFullscreen) {
         document.exitFullscreen();
-      } else if (document.mozCancelFullScreen) { /* Firefox */
+      } else if (document.mozCancelFullScreen) {
         document.mozCancelFullScreen();
-      } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+      } else if (document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) { /* IE/Edge */
+      } else if (document.msExitFullscreen) {
         document.msExitFullscreen();
       }
     }
     setIsFullScreen(!isFullScreen);
   };
 
-  // Tính toán điều kiện hiển thị "Hoàn thành"
-  const isCompleted = totalPlayTime > (playerRef.current?.getDuration() * 0.8);
+  const handleSpeedClick = (event) => setAnchorEl(event.currentTarget);
 
-  // Mở menu tốc độ phát
-  const handleSpeedClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleSpeedClose = () => {
-    setAnchorEl(null);
-  };
+  const handleSpeedClose = () => setAnchorEl(null);
 
   const handleSpeedSelect = (rate) => {
     setPlaybackRate(rate);
     setAnchorEl(null);
   };
 
-  // Hiển thị slider âm lượng khi hover lên nút âm lượng
   const handleVolumeHover = () => {
     setShowVolumeSlider(true);
-    if (sliderTimeout) {
-      clearTimeout(sliderTimeout); // Clear existing timeout if any
-    }
+    if (sliderTimeout) clearTimeout(sliderTimeout);
   };
 
-  // Ẩn slider sau 0.25s không có sự kiện hover
-  const handleVolumeLeave = () => {
-    setSliderTimeout(setTimeout(() => setShowVolumeSlider(false), 500)); // Ẩn slider sau 0.25s
-  };
+  const handleVolumeLeave = () =>
+    setSliderTimeout(setTimeout(() => setShowVolumeSlider(false), 500));
 
+  
+  
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" >
-      
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
+      <DialogContent
+        style={{overflowY:'hidden'}}
+      >
         {videoUrl ? (
-          <div ref={videoContainerRef} 
-          style={{ position: 'relative', width: '100%', height: '400px', 
-          pointerEvents: "none", overflowY:'hidden'}}>
+          <div
+            ref={videoContainerRef}
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "400px",
+              pointerEvents: "none",
+              overflowY: "hidden",
+            }}
+          >
             <ReactPlayer
               ref={playerRef}
               url={videoUrl}
               playing={playing}
               muted={muted}
               volume={volume}
-              playbackRate={playbackRate} // Tốc độ phát
+              playbackRate={playbackRate}
               width="100%"
               height="100%"
-              controls={false} // Disable default player controls
+              controls={false}
               onProgress={handleProgress}
+              config={{
+                youtube: {
+                  playerVars: {
+                    modestbranding: 1,
+                    fs: 0,
+                  },
+                },
+              }}
             />
           </div>
         ) : (
@@ -148,7 +166,14 @@ const VideoDialog = ({ open, onClose, videoUrl, title }) => {
         )}
       </DialogContent>
 
-      <div style={{ position: 'relative', padding: '10px', paddingTop: 0, paddingBottom: 0 }}>
+      <div
+        style={{
+          position: "relative",
+          padding: "10px",
+          paddingTop: 0,
+          paddingBottom: 0,
+        }}
+      >
         <Slider
           value={currentTime}
           min={0}
@@ -156,15 +181,14 @@ const VideoDialog = ({ open, onClose, videoUrl, title }) => {
           onChange={handleSeekChange}
           valueLabelDisplay="auto"
           valueLabelFormat={(value) => formatTime(value)}
-          style={{ width: '100%' }}
+          style={{ width: "100%" }}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 0 }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
             <IconButton onClick={togglePlayPause} color="primary">
               {playing ? <Pause /> : <PlayArrow />}
             </IconButton>
 
-            {/* Hiển thị slider âm lượng khi hover lên nút muted */}
             <IconButton
               onClick={toggleMute}
               color="primary"
@@ -174,7 +198,6 @@ const VideoDialog = ({ open, onClose, videoUrl, title }) => {
               {muted ? <VolumeOff /> : <VolumeUp />}
             </IconButton>
 
-            {/* Hiển thị slider âm lượng nếu đang hover */}
             {showVolumeSlider && !muted && (
               <Slider
                 ref={volumeSliderRef}
@@ -182,30 +205,24 @@ const VideoDialog = ({ open, onClose, videoUrl, title }) => {
                 min={0}
                 max={1}
                 step={0.01}
-                onMouseLeave={handleVolumeLeave} // Ẩn slider khi rời khỏi slider
-                onMouseEnter={() => clearTimeout(sliderTimeout)} // Clear timeout khi hover vào slider
+                onMouseLeave={handleVolumeLeave}
+                onMouseEnter={() => clearTimeout(sliderTimeout)}
                 onChange={handleVolumeChange}
                 valueLabelDisplay="auto"
                 valueLabelFormat={(value) => Math.round(value * 100)}
-                style={{ width: '100px', marginLeft: '10px' }} // Chiều rộng nhỏ cho slider âm lượng
+                style={{ width: "100px", marginLeft: "10px" }}
               />
             )}
 
-            {/* Nút điều chỉnh tốc độ phát */}
-            <IconButton onClick={handleSpeedClick} color="primary" style={{ marginLeft: '10px' }}>
+            <IconButton onClick={handleSpeedClick} color="primary" style={{ marginLeft: "10px" }}>
               <Speed />
             </IconButton>
 
-            <Typography variant="caption" color="textSecondary" style={{ marginLeft: '10px' }}>
+            <Typography variant="caption" color="textSecondary" style={{ marginLeft: "10px" }}>
               {playbackRate}x
             </Typography>
 
-            {/* Menu chọn tốc độ phát */}
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleSpeedClose}
-            >
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleSpeedClose}>
               <MenuItem onClick={() => handleSpeedSelect(1)}>1x</MenuItem>
               <MenuItem onClick={() => handleSpeedSelect(1.5)}>1.5x</MenuItem>
               <MenuItem onClick={() => handleSpeedSelect(2)}>2x</MenuItem>
@@ -220,16 +237,21 @@ const VideoDialog = ({ open, onClose, videoUrl, title }) => {
           </Typography>
         </div>
 
-        {/* Hiển thị tổng thời gian xem thực tế */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px' }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingTop: "10px",
+          }}
+        >
           <Typography variant="caption" color="textSecondary">
             Total Time Played: {formatTime(totalPlayTime)}
           </Typography>
 
-          {/* Hiển thị "Hoàn thành" nếu totalPlayTime > 80% duration */}
           {isCompleted && (
             <Typography variant="body2" color="success.main">
-              Hoàn thành
+              Completed 🎉 
             </Typography>
           )}
         </div>
