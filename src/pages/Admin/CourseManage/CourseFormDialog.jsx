@@ -181,7 +181,7 @@ function CourseFormDialog({
     try {
       handleAddCourse(formData);
     } catch (error) {
-      console.error("Error creating course:", error);
+      console.log("Error creating course:", error);
     }
   };
 

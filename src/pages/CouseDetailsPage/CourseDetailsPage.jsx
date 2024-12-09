@@ -126,7 +126,7 @@ function CourseDetailsPage() {
         setComment("");
       },
       onError: (error) => {
-        console.error("Error submitting review:", error);
+        console.log("Error submitting review:", error);
       },
     });
 
@@ -138,7 +138,7 @@ function CourseDetailsPage() {
         queryClient.invalidateQueries(["reviews", course?.urlSlug]);
       },
       onError: (error) => {
-        console.error("Error delete review:", error);
+        console.log("Error delete review:", error);
       },
     });
 
@@ -208,7 +208,7 @@ function CourseDetailsPage() {
       });
     }
   };
-
+  
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/">
       Homepage
@@ -311,73 +311,73 @@ function CourseDetailsPage() {
                 </div>
                 {(!registration ||
                   ["Pending", "Cancelled"].includes(registration?.status)) && (
-                    <div style={{ padding: "10%" }}>
-                      <div style={{ display: "flex", gap: "30px" }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: "20px",
-                            alignItems: "center",
-                          }}
+                  <div style={{ padding: "10%" }}>
+                    <div style={{ display: "flex", gap: "30px" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: "20px",
+                          alignItems: "center",
+                        }}
+                      >
+                        {course?.discountPrice !== null &&
+                          course?.discountPrice !== undefined && (
+                            <Typography
+                              variant="body2"
+                              color="textSecondary"
+                              sx={{ textDecoration: "line-through" }}
+                            >
+                              ${course?.price.toFixed(2)}
+                            </Typography>
+                          )}
+                        <Typography
+                          component="span"
+                          color={
+                            course?.discountPrice === 0 ? "green" : "primary"
+                          }
+                          sx={{ fontSize: "20px", fontWeight: "bold" }}
                         >
                           {course?.discountPrice !== null &&
-                            course?.discountPrice !== undefined && (
-                              <Typography
-                                variant="body2"
-                                color="textSecondary"
-                                sx={{ textDecoration: "line-through" }}
-                              >
-                                ${course?.price.toFixed(2)}
-                              </Typography>
-                            )}
-                          <Typography
-                            component="span"
-                            color={
-                              course?.discountPrice === 0 ? "green" : "primary"
-                            }
-                            sx={{ fontSize: "20px", fontWeight: "bold" }}
-                          >
-                            {course?.discountPrice !== null &&
-                              course?.discountPrice !== undefined
-                              ? course?.discountPrice === 0
-                                ? "Free"
-                                : `$${course?.discountPrice}`
-                              : `$${course?.price}`}
-                          </Typography>
-                        </Box>
-                        {["Pending", "Cancelled"].includes(
-                          registration?.status
-                        ) && (
-                            <Button
-                              sx={{
-                                borderRadius: "20px",
-                                backgroundColor: "#FF782D",
-                                color: "white",
-                                fontWeight: "500",
-                                padding: "5px 20px",
-                                cursor: "default",
-                              }}
-                            >
-                              Wait for admin to confirm
-                            </Button>
-                          )}
-                        {!registration && (
-                          <Button
-                            sx={{
-                              borderRadius: "20px",
-                              backgroundColor: "#FF782D",
-                              color: "white",
-                              fontWeight: "500",
-                              padding: "5px 20px",
-                            }}
-                            onClick={handleRegisterCourse}
-                          >
-                            Register
-                          </Button>
-                        )}
-                      </div>
+                          course?.discountPrice !== undefined
+                            ? course?.discountPrice === 0
+                              ? "Free"
+                              : `$${course?.discountPrice}`
+                            : `$${course?.price}`}
+                        </Typography>
+                      </Box>
+                      {["Pending"].includes(
+                        registration?.status
+                      ) && (
+                        <Button
+                          sx={{
+                            borderRadius: "20px",
+                            backgroundColor: "#FF782D",
+                            color: "white",
+                            fontWeight: "500",
+                            padding: "5px 20px",
+                            cursor: "default",
+                          }}
+                        >
+                          Wait for admin to confirm
+                        </Button>
+                      )}
+                      {(!registration || (["Cancelled"].includes(registration?.status))) &&
+                        <Button
+                          sx={{
+                            borderRadius: "20px",
+                            backgroundColor: "#FF782D",
+                            color: "white",
+                            fontWeight: "500",
+                            padding: "5px 20px",
+                          }}
+                          onClick={handleRegisterCourse}
+                        >
+                          Register
+                        </Button>
+                      }
                     </div>
-                  )}
+                  </div>
+                )}
               </CourseRegisterCard>
             </HeroBannerWrapper>
 

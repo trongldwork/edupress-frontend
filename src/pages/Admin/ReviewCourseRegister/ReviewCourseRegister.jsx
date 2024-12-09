@@ -43,7 +43,7 @@ const ReviewCourseRegister = () => {
       }));
       setRegistrations(formattedData);
       } catch (error) {
-        console.error("Error fetching registrations:", error);
+        console.log("Error fetching registrations:", error);
       }
     };
     fetchRegistrations();
@@ -88,7 +88,7 @@ const ReviewCourseRegister = () => {
         )
       );
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.log("Error updating status:", error);
     } finally {
       setOpenDialog(false);
     }

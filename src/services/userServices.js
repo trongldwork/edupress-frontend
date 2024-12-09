@@ -142,6 +142,14 @@ const changePassword = async (accessToken, currentPassword, newPassword) => {
   return response.data;
 }
 
+const getTotalUsers = async (accessToken) => {
+  const response = await axiosJWT.get(`${apiUrl}/user/admin/get-total-users`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+
+  return response.data;
+}
+
 export default {
   login,
   register,
@@ -158,5 +166,6 @@ export default {
   forgotPassword,
   verifyResetPasswordOTP,
   resetPassword,
-  changePassword
+  changePassword,
+  getTotalUsers,
 };
