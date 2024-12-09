@@ -433,7 +433,8 @@ function CourseDetailsPage() {
                             <VideoInfoWrapper key={video?.url || video?.title}>
                               <VideoTitleWrapper>
                                 <PlayLesson />
-                                <span>
+                                <span >
+                                  {video?.duration} {' - '}
                                   {video?.title}{" "}
                                   {completedVideos[video?.url] && (
                                     <Typography component="span" sx={{ fontSize: "0.85rem", color: "green", fontWeight: "bold", ml: 1 }}>

@@ -48,7 +48,7 @@ const HorizontalCourseCard = ({ course }) => {
         <img
           src={course?.image} // Use the thumbnail URL from course data
           alt={course?.name}
-          style={{ width: "100%", borderRadius: "12px" }}
+          style={{ width: "100%", borderRadius: "12px" , maxHeight: "175px", objectFit: "contain" }}
         />
         <Chip
           label={course?.category}
