@@ -14,7 +14,6 @@ const getCourses = async (queries) => {
 // Lấy chi tiết một khóa học theo URL slug
 const getCourse = async (urlSlug) => { 
   const response = await axios.get(`${apiUrl}/course/detail/url/${urlSlug}`);
-  console.log('Service - getCourse:', response.data);
   return response.data;
 };
 
@@ -80,7 +79,6 @@ const updateCourse = async (courseId, formData, accessToken) => {
 // Admin: Xóa một khóa học
 const deleteCourse = async (courseId, accessToken) => {
   try {
-    console.log('Service - Deleting course:', courseId);
     const response = await axiosJWT.delete(
       `${apiUrl}/course/admin/${courseId}`, 
       {
@@ -91,7 +89,7 @@ const deleteCourse = async (courseId, accessToken) => {
     );
     return response.data;
   } catch (error) {
-    console.error('Service error:', error.response?.data || error.message);
+    console.log('Service error:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -106,6 +104,14 @@ const getRegisteredUsers = async (courseId, accessToken) => {
   return response.data;
 };
 
+const getTotalCourses = async (accessToken) => {
+  const response = await axiosJWT.get(`${apiUrl}/course/admin/get-total-courses`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  return response.data;
+}
+
 export default {
   getCourses,
   getCourse,
@@ -116,4 +122,5 @@ export default {
   updateCourse,
   deleteCourse,
   getRegisteredUsers,
+  getTotalCourses
 };

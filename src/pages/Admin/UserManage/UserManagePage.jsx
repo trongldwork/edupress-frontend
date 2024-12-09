@@ -55,7 +55,7 @@ function UserManagePage() {
       setUsers(response.users);
       enqueueSnackbar("Users fetched successfully", "success");
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.log("Error fetching users:", error);
       enqueueSnackbar(
         `Error fetching users: ${error.response?.data?.message || error.message}`,
         "error"
@@ -134,7 +134,7 @@ function UserManagePage() {
       }
       fetchUsers();
     } catch (error) {
-      console.error("Error saving user:", error);
+      console.log("Error saving user:", error);
       enqueueSnackbar(
         `Error saving user: ${error.response?.data?.message || error.message}`,
         "error"
@@ -150,7 +150,7 @@ function UserManagePage() {
       enqueueSnackbar("User deleted successfully", "success");
       fetchUsers();
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.log("Error deleting user:", error);
       enqueueSnackbar(
         `Error deleting user: ${error.response?.data?.message || error.message}`,
         "error"

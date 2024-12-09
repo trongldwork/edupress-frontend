@@ -24,4 +24,15 @@ const getRegistration = async (accessToken, courseId) => {
   return response.data;
 };
 
-export default { registerCourse, getRegistration };
+const getTotalRegistrations = async (accessToken) => {
+  const response = await axiosJWT.get(
+    `${apiUrl}/register-course/admin/get-total-registrations`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+
+  return response.data;
+}
+
+export default { registerCourse, getRegistration, getTotalRegistrations };

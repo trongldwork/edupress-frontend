@@ -1,18 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Typography, Grid, Card, CardContent, Box } from "@mui/material";
 import { People, School, Feedback, PersonAdd } from "@mui/icons-material";
 import { Line, Bar } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import userServices from "../../services/userServices";
+import registerCourseService from "../../services/registerCourseService";
+import courseServices from "../../services/courseServices";
+import courseReviewService from "../../services/courseReviewService";
+import { handleGetAccessToken } from "../../services/axiosJWT";
 
 // Cấu hình Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
 // Mock Data
 const mockData = {
-  users: 1200,
-  registrations: 340,
-  courses: 45,
-  feedbacks: 78,
   monthlyRegistrations: [30, 40, 50, 60, 80, 90, 100, 110, 120, 130, 140, 150],
   userGrowth: [10, 20, 30, 40, 60, 80, 100, 120, 140, 160, 180, 200]
 };
@@ -78,6 +79,32 @@ function StatCard({ title, value, icon: Icon, color }) {
 }
 
 function AdminHomePage() {
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalRegistrations, setTotalRegistrations] = useState(0);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+
+  const accessToken = handleGetAccessToken();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { totalUsers } = await userServices.getTotalUsers(accessToken);
+        const { totalRegistrations } = await registerCourseService.getTotalRegistrations(accessToken);
+        const { totalCourses } = await courseServices.getTotalCourses(accessToken);
+        const { totalReviews } = await courseReviewService.getTotalReviews(accessToken);
+        setTotalUsers(totalUsers);
+        setTotalRegistrations(totalRegistrations);
+        setTotalCourses(totalCourses);
+        setTotalReviews(totalReviews);
+      } catch (error) {
+        console.log("Failed to fetch total users:", error);
+      }
+    };
+    
+    fetchData();
+  }, [accessToken]);
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -86,19 +113,19 @@ function AdminHomePage() {
       <Grid container spacing={3}>
         {/* Users */}
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Total Users" value={mockData.users} icon={People} color="blue" />
+          <StatCard title="Total Users" value={totalUsers} icon={People} color="blue" />
         </Grid>
         {/* Registrations */}
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="New Registrations" value={mockData.registrations} icon={PersonAdd} color="green" />
+          <StatCard title="Registrations" value={totalRegistrations} icon={PersonAdd} color="green" />
         </Grid>
         {/* Courses */}
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Total Courses" value={mockData.courses} icon={School} color="orange" />
+          <StatCard title="Total Courses" value={totalCourses} icon={School} color="orange" />
         </Grid>
         {/* Feedbacks */}
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Feedbacks Received" value={mockData.feedbacks} icon={Feedback} color="red" />
+          <StatCard title="Feedbacks Received" value={totalReviews} icon={Feedback} color="red" />
         </Grid>
       </Grid>
 

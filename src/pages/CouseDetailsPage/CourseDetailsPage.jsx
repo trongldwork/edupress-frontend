@@ -124,7 +124,7 @@ function CourseDetailsPage() {
         setComment("");
       },
       onError: (error) => {
-        console.error("Error submitting review:", error);
+        console.log("Error submitting review:", error);
       },
     });
 
@@ -136,7 +136,7 @@ function CourseDetailsPage() {
         queryClient.invalidateQueries(["reviews", course?.urlSlug]);
       },
       onError: (error) => {
-        console.error("Error delete review:", error);
+        console.log("Error delete review:", error);
       },
     });
 
@@ -206,7 +206,7 @@ function CourseDetailsPage() {
       });
     }
   };
-
+  
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/">
       Homepage
@@ -317,7 +317,7 @@ function CourseDetailsPage() {
                             : `$${course?.price}`}
                         </Typography>
                       </Box>
-                      {["Pending", "Cancelled"].includes(
+                      {["Pending"].includes(
                         registration?.status
                       ) && (
                         <Button
@@ -333,7 +333,7 @@ function CourseDetailsPage() {
                           Wait for admin to confirm
                         </Button>
                       )}
-                      {!registration && (
+                      {(!registration || (["Cancelled"].includes(registration?.status))) &&
                         <Button
                           sx={{
                             borderRadius: "20px",
@@ -346,7 +346,7 @@ function CourseDetailsPage() {
                         >
                           Register
                         </Button>
-                      )}
+                      }
                     </div>
                   </div>
                 )}

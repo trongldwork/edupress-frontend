@@ -69,7 +69,7 @@ const EditCourseDetails = () => {
       setShowSnackbar(true);
     },
     onError: (error) => {
-      console.error('Error updating course:', error);
+      console.log('Error updating course:', error);
       setSnackbarMessage('Error updating course');
       setShowSnackbar(true);
     }
@@ -84,7 +84,7 @@ const EditCourseDetails = () => {
       setShowSnackbar(true);
     },
     onError: (error) => {
-      console.error('Error saving lesson:', error);
+      console.log('Error saving lesson:', error);
       setSnackbarMessage('Error saving lesson');
       setShowSnackbar(true);
     }
@@ -99,7 +99,7 @@ const EditCourseDetails = () => {
       setShowSnackbar(true);
     },
     onError: (error) => {
-      console.error('Error adding lesson:', error);
+      console.log('Error adding lesson:', error);
       setSnackbarMessage('Error adding lesson');
       setShowSnackbar(true);
     }
@@ -113,7 +113,7 @@ const EditCourseDetails = () => {
       setShowSnackbar(true);
     },
     onError: (error) => {
-      console.error('Error deleting lesson:', error);
+      console.log('Error deleting lesson:', error);
       setSnackbarMessage('Error deleting lesson');
       setShowSnackbar(true);
     }

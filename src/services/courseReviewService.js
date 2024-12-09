@@ -32,8 +32,17 @@ const deleteReview = async (accessToken, reviewId) => {
   return response.data;
 };
 
+const getTotalReviews = async (accessToken, ) => {
+  const response = await axiosJWT.get(`${apiUrl}/course-review/admin/get-total-reviews`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  return response.data;
+}
+
 export default {
   postReview,
   getReviewsByCourse,
   deleteReview,
+  getTotalReviews,
 };
