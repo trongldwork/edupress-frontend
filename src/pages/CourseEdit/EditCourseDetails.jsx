@@ -401,6 +401,7 @@ const EditCourseDetails = () => {
             margin="dense"
           />
           <TextField
+            disabled
             fullWidth
             label="Order"
             name="order"

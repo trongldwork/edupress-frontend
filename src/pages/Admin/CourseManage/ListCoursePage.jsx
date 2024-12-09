@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -16,17 +15,19 @@ import {
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashBoardLayout from "../../../components/Layouts/DashBoardLayout";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import React, { useEffect, useState } from "react";
 import courseServices from "../../../services/courseServices";
 import CourseFormDialog from "./CourseFormDialog";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward"; // Icon điều hướng
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { handleGetAccessToken } from "../../../services/axiosJWT";
 import CourseEditDialog from "./CourseEditDialog";
+import { useNavigate } from "react-router-dom";
 
 function ListCoursePage() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
@@ -99,6 +100,7 @@ function ListCoursePage() {
     },
   });
 
+  // Hàm gọi mutation khi xác nhận xóa
   const confirmDelete = async () => {
     if (courseToDelete) {
       deleteCourseMutation.mutate(courseToDelete._id);
@@ -173,7 +175,7 @@ function ListCoursePage() {
     {
       field: "actions",
       headerName: "Actions",
-      flex: 3, // Mở rộng cột để thêm nút
+      flex: 2,
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (

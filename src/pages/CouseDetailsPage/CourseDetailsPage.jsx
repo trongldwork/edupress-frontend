@@ -145,7 +145,7 @@ function CourseDetailsPage() {
       mutationFn: () =>
         registerCourseService.registerCourse(accessToken, course?._id),
       onError: (error) => {
-        console.error("Error registered course:", error);
+        console.log("Error registered course:", error);
       },
     });
 
@@ -195,7 +195,15 @@ function CourseDetailsPage() {
       const returnUrl = encodeURIComponent(location.pathname); // Lấy đường dẫn hiện tại làm returnUrl
       navigate(`/sign-in?returnUrl=${returnUrl}`);
     } else {
-      mutateRegisterCourse();
+      const currentPath = location.pathname + location.search;
+      navigate("/payment", {
+        state: {
+          courseId: course?._id,
+          courseName: course?.name,
+          coursePrice: course?.discountPrice ?? course?.price,
+          returnUrl: currentPath,
+        },
+      });
     }
   };
 

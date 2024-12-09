@@ -42,8 +42,6 @@ function ProfilePage() {
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("");
 
-  const [isAvatarLoading, setAvatarLoading] = useState(false);
-  const [isSaving, setSaving] = useState(false);
   const [alertMessage, setAlertMessage] = useState(null); // Quản lý thông báo
   const [openSnackbar, setOpenSnackbar] = useState(false); // Trạng thái Snackbar
 
@@ -67,8 +65,8 @@ function ProfilePage() {
       return userServices.updateAvatar(accessToken, file);
     },
     onSuccess: (respond) => {
-      dispatch(changeAvatar({ avatarUrl: respond.data.avatarUrl }));
-      setAvatar(respond.data.avatarUrl);
+      dispatch(changeAvatar({ avatarUrl: respond.avatarUrl }));
+      setAvatar(respond.avatarUrl);
       setAlertMessage({
         type: "success",
         text: "Avatar updated successfully!",
@@ -175,9 +173,9 @@ function ProfilePage() {
           <ProfileHeaderWrapper>Personal info</ProfileHeaderWrapper>
           <UserProfileInfoWrapper>
             <UserAvatarContainer
-              sx={{ position: "relative", opacity: isAvatarLoading ? 0.5 : 1 }}
+              sx={{ position: "relative", opacity: avatarUploadMutation?.isPending ? 0.5 : 1 }}
             >
-              {isAvatarLoading && (
+              {avatarUploadMutation?.isPending && (
                 <Box
                   sx={{
                     position: "absolute",
@@ -205,7 +203,7 @@ function ProfilePage() {
                 <Button
                   variant="outlined"
                   component="label"
-                  disabled={isAvatarLoading}
+                  disabled={avatarUploadMutation?.isPending}
                 >
                   Upload Avatar
                   <input
@@ -219,9 +217,9 @@ function ProfilePage() {
             </UserAvatarContainer>
 
             <UserInfoFormContainer
-              sx={{ position: "relative", opacity: isSaving ? 0.5 : 1 }}
+              sx={{ position: "relative", opacity: saveProfileMutation?.isPending ? 0.5 : 1 }}
             >
-              {isSaving && (
+              {saveProfileMutation?.isPending && (
                 <Box
                   sx={{
                     position: "absolute",
@@ -252,7 +250,7 @@ function ProfilePage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 margin="normal"
-                disabled={isSaving}
+                disabled={saveProfileMutation?.isPending}
               />
               <Stack direction="row" justifyContent="space-between" sx={{ marginTop: 2 }}>
                 <Button
@@ -267,7 +265,7 @@ function ProfilePage() {
                   color="primary"
                   onClick={handleSave}
                   sx={{ color: "white" }}
-                  disabled={isSaving}
+                  disabled={saveProfileMutation?.isPending}
                 >
                   Save
                 </Button>

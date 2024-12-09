@@ -1,4 +1,4 @@
-import axiosJWT from "./axiosJWT"; //Wait for axiosJWT module has been built...
+import axiosJWT from "./axiosJWT";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const registerCourse = async (accessToken, courseId) => {

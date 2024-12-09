@@ -57,7 +57,7 @@ function CourseEditDialog({
         level: initialData.level || "",
         price: initialData.price || "",
         discountPrice: initialData.discountPrice || "",
-        image: setImagePreview,
+        image: imagePreview,
         description: initialData.description || "",
       });
     }
