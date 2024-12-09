@@ -12,42 +12,58 @@ import { handleGetAccessToken } from "../../services/axiosJWT";
 // Cấu hình Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Mock Data
-const mockData = {
-  monthlyRegistrations: [30, 40, 50, 60, 80, 90, 100, 110, 120, 130, 140, 150],
-  userGrowth: [10, 20, 30, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-};
+const currentDate = new Date();
+const currentDay = currentDate.getDate();
+const currentMonth = currentDate.getMonth();
+const currentYear = currentDate.getFullYear();
 
-// Biểu đồ đăng ký theo tháng
-const registrationChartData = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-  datasets: [
-    {
-      label: "New Registrations",
-      data: mockData.monthlyRegistrations,
-      backgroundColor: "rgba(75, 192, 192, 0.2)",
-      borderColor: "rgba(75, 192, 192, 1)",
-      borderWidth: 1,
-    },
-  ],
-};
+function getLastNDaysDates(n) {
+  const dates = [];
+  for (let i = 0; i < n; i++) {
+    const date = new Date();
+    date.setDate(currentDate.getDate() - i);
+    dates.push(date.toISOString().split("T")[0]);
+  }
+  return dates.reverse();
+}
 
-// Biểu đồ tăng trưởng người dùng
-const userGrowthChartData = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-  datasets: [
-    {
-      label: "User Growth",
-      data: mockData.userGrowth,
-      fill: false,
-      backgroundColor: "rgba(255, 99, 132, 0.2)",
-      borderColor: "rgba(255, 99, 132, 1)",
-      borderWidth: 1,
-    },
-  ],
-};
+const last10Days = getLastNDaysDates(10);
 
-// Thẻ thống kê
+function AdminHomePage() {
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalRegistrations, setTotalRegistrations] = useState(0);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [users, setUsers] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+
+  const accessToken = handleGetAccessToken();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { users } = await userServices.getUsers();
+        const  allRegistration  = await registerCourseService.getRegistrations();
+        const { totalUsers } = await userServices.getTotalUsers(accessToken);
+        const { totalRegistrations } = await registerCourseService.getTotalRegistrations(accessToken);
+        const { totalCourses } = await courseServices.getTotalCourses(accessToken);
+        const { totalReviews } = await courseReviewService.getTotalReviews(accessToken);
+        setTotalUsers(totalUsers);
+        setTotalRegistrations(totalRegistrations);
+        setTotalCourses(totalCourses);
+        setTotalReviews(totalReviews);
+        setUsers(users);
+        setRegistrations(allRegistration);
+      } catch (error) {
+        console.log("Failed to fetch total users:", error);
+      }
+    };
+
+    fetchData();
+  }, [accessToken]);
+
+
+  // Thẻ thống kê
 function StatCard({ title, value, icon: Icon, color }) {
   return (
     <Card elevation={3} sx={{ display: "flex", alignItems: "center", p: 2 }}>
@@ -77,33 +93,43 @@ function StatCard({ title, value, icon: Icon, color }) {
     </Card>
   );
 }
+  const filterDataByDate = (data, dateField) => {
+    return last10Days.map(date => {
+      return data.filter(item => item[dateField].startsWith(date)).length;
+    });
+  };
 
-function AdminHomePage() {
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [totalRegistrations, setTotalRegistrations] = useState(0);
-  const [totalCourses, setTotalCourses] = useState(0);
-  const [totalReviews, setTotalReviews] = useState(0);
+  const newUsersLast10Days = filterDataByDate(users, "createdAt");
+  const newRegistrationsLast10Days = filterDataByDate(registrations, "createdAt");
 
-  const accessToken = handleGetAccessToken();
+  // Biểu đồ đăng ký theo tháng
+  const registrationChartData = {
+    labels: last10Days,
+    datasets: [
+      {
+        label: "Daily Registrations",
+        data: newRegistrationsLast10Days,
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { totalUsers } = await userServices.getTotalUsers(accessToken);
-        const { totalRegistrations } = await registerCourseService.getTotalRegistrations(accessToken);
-        const { totalCourses } = await courseServices.getTotalCourses(accessToken);
-        const { totalReviews } = await courseReviewService.getTotalReviews(accessToken);
-        setTotalUsers(totalUsers);
-        setTotalRegistrations(totalRegistrations);
-        setTotalCourses(totalCourses);
-        setTotalReviews(totalReviews);
-      } catch (error) {
-        console.log("Failed to fetch total users:", error);
-      }
-    };
-    
-    fetchData();
-  }, [accessToken]);
+  // Biểu đồ tăng trưởng người dùng
+  const userGrowthChartData = {
+    labels: last10Days,
+    datasets: [
+      {
+        label: "User Growth",
+        data: newUsersLast10Days,
+        fill: false,
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        borderColor: "rgba(255, 99, 132, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -135,7 +161,7 @@ function AdminHomePage() {
           <Card elevation={3}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Monthly Registrations
+                Daily Registrations (Last 10 Days)
               </Typography>
               <Bar data={registrationChartData} options={{ responsive: true }} />
             </CardContent>
@@ -147,7 +173,7 @@ function AdminHomePage() {
           <Card elevation={3}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                User Growth Over Time
+                User Growth (Last 10 Days)
               </Typography>
               <Line data={userGrowthChartData} options={{ responsive: true }} />
             </CardContent>

@@ -105,21 +105,21 @@ export const routes = [
         path: '/admin/course-management',
         page: ListCoursePage,
         showInDashBoardLayout: true,
-        title: 'Quản lý khoá học',
+        title: 'Course Management',
         adminManage: true
     },
     { 
         path: '/admin/review-course-register',
         page: ReviewCourseRegister,
         showInDashBoardLayout: true,
-        title: 'Duyệt đăng ký khóa học',
+        title: 'Review Course Register',
         adminManage: true
     },
     {
         path: '/admin/user-management',
         page: UserManagePage,
         showInDashBoardLayout: true,
-        title: 'Quản lý người dùng',
+        title: 'User Management',
         adminManage: true
     }
 ]

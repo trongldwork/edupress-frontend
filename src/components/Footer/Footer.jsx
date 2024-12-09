@@ -105,7 +105,7 @@ const Footer = () => {
       <hr style={{opacity: '0.2'}}/>
       <Box textAlign="center" mt={4} sx={{paddingBottom: '20px'}}>
         <Typography variant="body2" css={{ color: "#666" }}>
-          Copyright © 2024 LearnPress LMS | Powered by ThimPress
+          Copyright © 2024 EduPress LMS | Powered by Cong nghe web
         </Typography>
       </Box>
     </BasePadding>
