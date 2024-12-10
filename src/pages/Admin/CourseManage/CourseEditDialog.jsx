@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,11 +11,11 @@ import {
   Box,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useMutation } from "@tanstack/react-query";
 import { handleGetAccessToken } from "../../../services/axiosJWT";
-import { useEffect } from "react";
 
 const Input = styled("input")({
   display: "none",
@@ -40,7 +40,7 @@ function CourseEditDialog({
     level: "",
     price: "",
     discountPrice: "",
-    image: null,
+    image: "",
     description: "",
   });
   const [errors, setErrors] = useState({});
@@ -57,7 +57,7 @@ function CourseEditDialog({
         level: initialData.level || "",
         price: initialData.price || "",
         discountPrice: initialData.discountPrice || "",
-        image: imagePreview,
+        image: initialData.image || "",
         description: initialData.description || "",
       });
     }
@@ -69,30 +69,20 @@ function CourseEditDialog({
     setOpenSnackbar(true);
   };
 
-  const updateCourseMutation = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      try {
-        const accessToken = handleGetAccessToken();
-        const data = new FormData();
+      const accessToken = handleGetAccessToken();
+      const data = new FormData();
 
-        data.append("name", formData.name || "");
-        data.append("category", formData.category || "");
-        data.append("level", formData.level || "");
-        data.append("price", formData.price || "0");
-        data.append("discountPrice", formData.discountPrice || "0");
-        if (formData.image) data.append("image", formData.image); // Nếu có hình ảnh mới thì gửi
-        data.append("description", formData.description || "");
+      data.append("name", formData.name || "");
+      data.append("category", formData.category || "");
+      data.append("level", formData.level || "");
+      data.append("price", formData.price || "0");
+      data.append("discountPrice", formData.discountPrice || "0");
+      if (formData.image) data.append("image", formData.image);
+      data.append("description", formData.description || "");
 
-        return await courseServices.updateCourse(
-          initialData._id,
-          data,
-          accessToken
-        );
-      } catch (error) {
-        throw new Error(
-          error.response?.data?.message || "Failed to update course"
-        );
-      }
+      return courseServices.updateCourse(initialData._id, data, accessToken);
     },
     onSuccess: () => {
       handleShowSnackbar("Course updated successfully", "success");
@@ -101,7 +91,7 @@ function CourseEditDialog({
     },
     onError: (error) => {
       handleShowSnackbar(
-        error.response?.data?.message || "Failed to add course",
+        error.response?.data?.message || "Failed to update course",
         "error"
       );
     },
@@ -109,7 +99,7 @@ function CourseEditDialog({
 
   const handleSubmit = () => {
     if (!validateForm()) return;
-    updateCourseMutation.mutate();
+    mutate();
   };
 
   const levelOptions = ["Beginner", "Intermediate", "Advanced"];
@@ -134,7 +124,6 @@ function CourseEditDialog({
       ...prev,
       [name]: value,
     }));
-    // Clear error when user types
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -150,7 +139,6 @@ function CourseEditDialog({
         ...prev,
         image: file,
       }));
-      // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
     }
@@ -292,11 +280,19 @@ function CourseEditDialog({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={handleClose}>
+          <Button variant="outlined" onClick={handleClose} disabled={isPending}>
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Save
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <CircularProgress size={24} sx={{ color: "white" }} />
+            ) : (
+              "Save"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
