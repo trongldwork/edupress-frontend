@@ -8,7 +8,7 @@ on:
 jobs:
   deploy_to_live:
     name: Deploy prod hosting
-    runs-on: ubuntu-latest
+    runs-on: window-latest
     strategy:
       matrix:
         node: [20,22]
