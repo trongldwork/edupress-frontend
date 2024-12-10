@@ -282,6 +282,12 @@ function ListCoursePage() {
           columns={columns}
           disableRowSelectionOnClick
           loading={isLoading}
+          pageSizeOptions={[10, 25, 50, 100]}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 }, // Mặc định là 10 hàng trên mỗi trang
+            },
+          }}
         />
       </Box>
 

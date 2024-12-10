@@ -182,12 +182,18 @@ const ReviewCourseRegister = () => {
   ];
 
   return (
-    <Box sx={{ width: "100%", height: "100%", marginTop: "20px" }}>
+    <Box sx={{ width: "100%", marginTop: "50px" }}>
       <DataGrid
         rows={registrations}
         columns={columns}
         getRowId={(row) => row._id} // Sử dụng `_id` từ MongoDB làm `id`
-        sx={{ height: "100%", width: "100%" }}
+        sx={{ width: "100%" }}
+        pageSizeOptions={[10, 25, 50, 100]}
+        initialState={{
+          pagination: {
+            paginationModel: { pageSize: 10, page: 0 }, // Mặc định là 10 hàng trên mỗi trang
+          },
+        }}
       />
 
       <Dialog open={openDialog} onClose={handleDialogClose}>
