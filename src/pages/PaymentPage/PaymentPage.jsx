@@ -43,7 +43,6 @@ function PaymentPage() {
     mutationFn: () =>
       registerCourseService.registerCourse(accessToken, courseId),
     onError: (error) => {
-      console.log("Error registering course:", error);
       setAlertMessage("Failed to register course. Please try again.");
       setAlertSeverity("error");
     },
@@ -55,8 +54,6 @@ function PaymentPage() {
     if (!!accessToken && !!courseId && coursePrice >= 0) {
       try {
         const registrationData = await registerCourseMutation.mutateAsync();
-        console.log("ok");
-        
         setAlertMessage("Course registration successful!");
         setAlertSeverity("success");
         return registrationData;
@@ -80,7 +77,6 @@ function PaymentPage() {
 
   const capturePayPalOrderMutation = useMutation({
     mutationFn: (data) => {
-      console.log("capture data", data);
       return capturePayPalOrder(data);
     },
     onSuccess: () => {

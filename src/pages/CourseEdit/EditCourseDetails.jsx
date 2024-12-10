@@ -170,7 +170,6 @@ const EditCourseDetails = () => {
       ...lesson,
       videos: lesson.videos.filter((v) => v._id !== videoId),
     };
-    console.log('updatedLesson:', updatedLesson);
     saveLessonMutation(updatedLesson);
   };
 

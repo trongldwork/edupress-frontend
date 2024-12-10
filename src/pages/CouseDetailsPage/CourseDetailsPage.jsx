@@ -238,8 +238,6 @@ function CourseDetailsPage() {
         const durationInSeconds = durationArray.reduceRight((acc, time, index, arr) => {
           return acc + time * Math.pow(60, arr.length - 1 - index);
         }, 0);
-        console.log("watchedTime", watchedTime);
-        console.log("durationInSeconds", durationInSeconds);
         if (watchedTime / durationInSeconds >= 0.8) {
           completed[video?.url] = true;
         }
