@@ -6,14 +6,24 @@ import { List } from "@mui/material";
 import { ListItem } from "@mui/material";
 import { ListItemText } from "@mui/material";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { routes } from "../../routes";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserHeader from "../HeaderNavBar/UserHeader";
+import { handleGetAccessToken } from "../../services/axiosJWT";
+import { jwtDecode } from "jwt-decode";
 
 function DashBoardLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const accessToken = handleGetAccessToken();
+    const decoded = jwtDecode(accessToken);
+    if(decoded?.role !== "Admin") {
+      navigate("/");
+    }
+  }, [])
 
   return (
     <>
