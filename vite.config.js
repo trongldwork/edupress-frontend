@@ -13,5 +13,8 @@ export default defineConfig({
   ],
   server: {
     port: 3001,
-  }
+  },
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'], // Tự động thêm đuôi
+  },
 });
