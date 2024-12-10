@@ -55,8 +55,8 @@ function CourseEditDialog({
         urlSlug: initialData.urlSlug || "",
         category: initialData.category || "",
         level: initialData.level || "",
-        price: initialData.price || "",
-        discountPrice: initialData.discountPrice || "",
+        price: initialData.price,
+        discountPrice: initialData.discountPrice || 0,
         image: initialData.image || "",
         description: initialData.description || "",
       });

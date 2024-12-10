@@ -112,7 +112,7 @@ export const routes = [
         path: '/admin/review-course-register',
         page: ReviewCourseRegister,
         showInDashBoardLayout: true,
-        title: 'Review Course Register',
+        title: 'Course Registrations',
         adminManage: true
     },
     {
