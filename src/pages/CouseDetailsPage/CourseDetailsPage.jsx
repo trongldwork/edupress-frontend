@@ -57,6 +57,7 @@ import { handleGetAccessToken } from "../../services/axiosJWT";
 import { useSelector } from "react-redux";
 import registerCourseService from "../../services/registerCourseService";
 import lessonService from "../../services/lessonService";
+import VideoDialog from "../../components/Video/VideoDialog";
 
 function CourseDetailsPage() {
   const user = useSelector((state) => state.user);
@@ -69,6 +70,11 @@ function CourseDetailsPage() {
   const [comment, setComment] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedReviewId, setSelectedReviewId] = useState(null);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [completedVideos, setCompletedVideos] = useState({});
+
+
 
   const accessToken = handleGetAccessToken();
 
@@ -120,7 +126,7 @@ function CourseDetailsPage() {
         setComment("");
       },
       onError: (error) => {
-        console.error("Error submitting review:", error);
+        console.log("Error submitting review:", error);
       },
     });
 
@@ -132,7 +138,7 @@ function CourseDetailsPage() {
         queryClient.invalidateQueries(["reviews", course?.urlSlug]);
       },
       onError: (error) => {
-        console.error("Error delete review:", error);
+        console.log("Error delete review:", error);
       },
     });
 
@@ -141,7 +147,7 @@ function CourseDetailsPage() {
       mutationFn: () =>
         registerCourseService.registerCourse(accessToken, course?._id),
       onError: (error) => {
-        console.error("Error registered course:", error);
+        console.log("Error registered course:", error);
       },
     });
 
@@ -157,6 +163,16 @@ function CourseDetailsPage() {
       rating,
       review: comment,
     });
+  };
+
+  const handleOpenVideoDialog = (video) => {
+    setSelectedVideo(video);
+    setVideoDialogOpen(true);
+  };
+
+  const handleCloseVideoDialog = () => {
+    setSelectedVideo(null);
+    setVideoDialogOpen(false);
   };
 
   const handleClickOpenDialog = (reviewId) => {
@@ -181,10 +197,18 @@ function CourseDetailsPage() {
       const returnUrl = encodeURIComponent(location.pathname); // Lấy đường dẫn hiện tại làm returnUrl
       navigate(`/sign-in?returnUrl=${returnUrl}`);
     } else {
-      mutateRegisterCourse();
+      const currentPath = location.pathname + location.search;
+      navigate("/payment", {
+        state: {
+          courseId: course?._id,
+          courseName: course?.name,
+          coursePrice: course?.discountPrice ?? course?.price,
+          returnUrl: currentPath,
+        },
+      });
     }
   };
-
+  
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/">
       Homepage
@@ -199,6 +223,32 @@ function CourseDetailsPage() {
 
   const cleanCourseDescription = DOMPurify.sanitize(course?.description);
 
+  useEffect(() => {
+    const completed = {};
+    lessons?.forEach((lesson) => {
+      lesson?.videos?.forEach((video) => {
+        const localStorageKey = `video-${video?.url}`;
+        const watchedTime = parseFloat(localStorage.getItem(localStorageKey)) || 0;
+        const duration = video?.duration || "0:00"; // Default to "0:00" if duration is not provided
+
+        // Split the duration string into an array
+        const durationArray = duration.split(":").map(Number);
+
+        // Calculate the total duration in seconds
+        const durationInSeconds = durationArray.reduceRight((acc, time, index, arr) => {
+          return acc + time * Math.pow(60, arr.length - 1 - index);
+        }, 0);
+        console.log("watchedTime", watchedTime);
+        console.log("durationInSeconds", durationInSeconds);
+        if (watchedTime / durationInSeconds >= 0.8) {
+          completed[video?.url] = true;
+        }
+      });
+    });
+    setCompletedVideos(completed);
+  }, [lessons]);
+
+
   return (
     <div
       css={css`
@@ -209,11 +259,11 @@ function CourseDetailsPage() {
       `}
     >
       {isPending ||
-      isPendingReviews ||
-      isPendingCreateReview ||
-      isPendingDeleteReview ||
-      isPendingGetRegistration ||
-      isPendingGetLessons ? (
+        isPendingReviews ||
+        isPendingCreateReview ||
+        isPendingDeleteReview ||
+        isPendingGetRegistration ||
+        isPendingGetLessons ? (
         <div
           css={css`
             display: flex;
@@ -295,7 +345,7 @@ function CourseDetailsPage() {
                             : `$${course?.price}`}
                         </Typography>
                       </Box>
-                      {["Pending", "Cancelled"].includes(
+                      {["Pending"].includes(
                         registration?.status
                       ) && (
                         <Button
@@ -311,7 +361,7 @@ function CourseDetailsPage() {
                           Wait for admin to confirm
                         </Button>
                       )}
-                      {!registration && (
+                      {(!registration || (["Cancelled"].includes(registration?.status))) &&
                         <Button
                           sx={{
                             borderRadius: "20px",
@@ -324,7 +374,7 @@ function CourseDetailsPage() {
                         >
                           Register
                         </Button>
-                      )}
+                      }
                     </div>
                   </div>
                 )}
@@ -367,7 +417,10 @@ function CourseDetailsPage() {
                           id="panel1-header"
                         >
                           <Typography>{lesson?.title}</Typography>
+                          <Typography variant="body2" color="textSecondary" gutterBottom width='50%'
+                            textAlign='left' paddingLeft='20px'>{lesson?.description}</Typography>
                         </AccordionSummary>
+
                         <AccordionDetails
                           sx={{
                             display: "flex",
@@ -375,21 +428,31 @@ function CourseDetailsPage() {
                             gap: "15px",
                           }}
                         >
+
                           {lesson?.videos?.map((video) => (
                             <VideoInfoWrapper key={video?.url || video?.title}>
                               <VideoTitleWrapper>
                                 <PlayLesson />
-                                <span>{video?.title}</span>
+                                <span >
+                                  {video?.duration} {' - '}
+                                  {video?.title}{" "}
+                                  {completedVideos[video?.url] && (
+                                    <Typography component="span" sx={{ fontSize: "0.85rem", color: "green", fontWeight: "bold", ml: 1 }}>
+                                      Completed ✔️
+                                    </Typography>
+                                  )}
+                                </span>
+
+
                               </VideoTitleWrapper>
                               {video?.url && (
                                 <Button
                                   variant="text"
-                                  onClick={() =>
-                                    window.open(video?.url, "_blank")
-                                  }
+                                  onClick={() => handleOpenVideoDialog(video)}
                                 >
                                   Watch
                                 </Button>
+
                               )}
                             </VideoInfoWrapper>
                           ))}
@@ -422,8 +485,10 @@ function CourseDetailsPage() {
                                   year: "numeric",
                                   month: "long",
                                   day: "2-digit",
+
                                   hour: "2-digit",
                                   minute: "2-digit",
+
                                 })}
                               </div>
                               {review?.userId?.email === user?.email && (
@@ -527,6 +592,13 @@ function CourseDetailsPage() {
               </Button>
             </DialogActions>
           </Dialog>
+          <VideoDialog
+            open={videoDialogOpen}
+            onClose={handleCloseVideoDialog}
+            videoUrl={selectedVideo?.url}
+            title={selectedVideo?.title}
+          />
+
         </>
       )}
     </div>

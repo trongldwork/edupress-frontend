@@ -99,20 +99,24 @@ function Home() {
             beguiled and demoralized that cannot trouble.
           </div>
           <button
+            onClick={() => {
+              window.location.href = "mailto:feedback@congngheweb.com";
+            }}
             css={css`
-              font-size: 18px;
-              color: white;
-              width: 100%;
-              border: none;
-              border-radius: 24px;
-              background-color: #ff782d;
-              padding: 10px 24px 10px 24px;
-              width: fit-content;
-              cursor: pointer;
-            `}
+    font-size: 18px;
+    color: white;
+    width: 100%;
+    border: none;
+    border-radius: 24px;
+    background-color: #ff782d;
+    padding: 10px 24px;
+    width: fit-content;
+    cursor: pointer;
+  `}
           >
-            Posts comment
+            Direct Feedback
           </button>
+
         </HeroBannerContent>
       </HeroBannerWrapper>
       <BasePadding

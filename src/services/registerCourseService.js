@@ -1,4 +1,5 @@
-import axiosJWT from "./axiosJWT"; //Wait for axiosJWT module has been built...
+import axiosJWT from "./axiosJWT";
+import { handleGetAccessToken } from "./axiosJWT";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const registerCourse = async (accessToken, courseId) => {
@@ -24,4 +25,26 @@ const getRegistration = async (accessToken, courseId) => {
   return response.data;
 };
 
-export default { registerCourse, getRegistration };
+const getTotalRegistrations = async (accessToken) => {
+  const response = await axiosJWT.get(
+    `${apiUrl}/register-course/admin/get-total-registrations`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+
+  return response.data;
+}
+
+const getRegistrations = async () => {
+  const accessToken = handleGetAccessToken();
+  const response = await axiosJWT.get(
+    `${apiUrl}/register-course/admin/registrations`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+  return response.data;
+}
+
+export default { registerCourse, getRegistration, getTotalRegistrations, getRegistrations };

@@ -18,14 +18,7 @@ function DashBoardLayout({ children }) {
   return (
     <>
       <UserHeader />
-      <Stack
-        direction="row"
-        height={"calc(100vh - 72px)"}
-        sx={(theme) => ({
-          backgroundColor: theme.palette.background.default,
-          overflow: "auto",
-        })}
-      >
+      <Stack direction="row" height={"calc(100vh - 72px)"}>
         <Card
           sx={{
             width: 240,
@@ -57,7 +50,7 @@ function DashBoardLayout({ children }) {
           </List>
         </Card>
 
-        <Box component="main" sx={{ flexGrow: 1 }}>
+        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
           {children}
         </Box>
       </Stack>

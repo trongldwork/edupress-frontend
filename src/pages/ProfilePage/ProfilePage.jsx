@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect } from "react";
 import BasePadding from "../../components/BasePadding/BasePadding";
 import {
   BreadcrumbWrapper,
@@ -24,12 +24,13 @@ import {
   Box,
   Snackbar,
   Alert,
+  Modal,
 } from "@mui/material";
 import { NavigateNext } from "@mui/icons-material";
 import userServices from "../../services/userServices.js";
 import { changeAvatar, updateUserProfile } from "../../redux/userStore.js";
 import { handleGetAccessToken } from "../../services/axiosJWT.js";
-import { useMutation } from "@tanstack/react-query"; // React Query v5
+import { useMutation } from "@tanstack/react-query";
 
 function ProfilePage() {
   const user = useSelector((state) => state.user);
@@ -41,10 +42,13 @@ function ProfilePage() {
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("");
 
-  const [isAvatarLoading, setAvatarLoading] = useState(false);
-  const [isSaving, setSaving] = useState(false);
-  const [alertMessage, setAlertMessage] = useState(null); // For managing alerts
-  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar state
+  const [alertMessage, setAlertMessage] = useState(null); // Quản lý thông báo
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Trạng thái Snackbar
+
+  const [isChangePasswordOpen, setChangePasswordOpen] = useState(false); // Trạng thái Modal
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/">
@@ -55,41 +59,33 @@ function ProfilePage() {
     </Typography>,
   ];
 
-  // Avatar upload mutation
+  // Mutation tải lên avatar
   const avatarUploadMutation = useMutation({
     mutationFn: async (file) => {
-      const accessToken = handleGetAccessToken();
       return userServices.updateAvatar(accessToken, file);
     },
     onSuccess: (respond) => {
-      dispatch(changeAvatar({ avatarUrl: respond.data.avatarUrl }));
-      setAvatar(respond.data.avatarUrl);
+      dispatch(changeAvatar({ avatarUrl: respond.avatarUrl }));
+      setAvatar(respond.avatarUrl);
       setAlertMessage({
         type: "success",
         text: "Avatar updated successfully!",
       });
     },
-    onError: (e) => {
+    onError: () => {
       setAlertMessage({ type: "error", text: "Error uploading avatar." });
     },
   });
 
-  const handleAvatarUpload = (e) => {
-    avatarUploadMutation.mutate(e.target.files[0]);
-    e.target.value = ""; // reset the file input
-  };
-
-  // Save user profile mutation
+  // Mutation lưu hồ sơ
   const saveProfileMutation = useMutation({
     mutationFn: async (updatedUser) => {
-      const accessToken = handleGetAccessToken();
       return userServices.updateUserInfo(accessToken, updatedUser);
     },
     onSuccess: (data) => {
       const { updatedUser } = data;
       if (updatedUser) {
         dispatch(updateUserProfile(updatedUser));
-
         setAlertMessage({
           type: "success",
           text: "Profile updated successfully!",
@@ -97,45 +93,70 @@ function ProfilePage() {
       }
     },
     onError: (error) => {
-      console.error("Error updating user:", error);
-      setAlertMessage({ type: "error", text: "Error updating profile." });
+      setAlertMessage({ type: "error", text: error?.response?.data?.message });
     },
   });
 
+  // Mutation thay đổi mật khẩu
+  const changePasswordMutation = useMutation({
+    mutationFn: async ({ currentPassword, newPassword }) => {
+      return userServices.changePassword(accessToken, currentPassword, newPassword );
+    },
+    onSuccess: () => {
+      setAlertMessage({
+        type: "success",
+        text: "Password changed successfully!",
+      });
+      setChangePasswordOpen(false);
+    },
+    onError: (error) => {
+      setAlertMessage({ type: "error", text: error?.response?.data?.message });
+    },
+  });
+
+  const { isPending: isPendingChangePassword } = changePasswordMutation;
+
   const handleSave = () => {
     saveProfileMutation.mutate({ email, name });
+  };
+
+  const handleChangePassword = () => {
+    if (newPassword !== confirmPassword) {
+      setAlertMessage({ type: "error", text: "Passwords do not match!" });
+      return;
+    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
+
+  const handleAvatarUpload = (e) => {
+    avatarUploadMutation.mutate(e.target.files[0]);
+    e.target.value = ""; // Reset file input
   };
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
   };
 
-  //Vào trang đăng nhập khi chưa có access token
+  // Điều hướng nếu chưa có token
   useEffect(() => {
     if (!accessToken) {
       navigate("/sign-in");
     }
   }, [accessToken, navigate]);
 
+  // Gán giá trị user vào state
   useEffect(() => {
     setEmail(user?.email);
     setName(user?.name);
     setAvatar(user?.avatarUrl);
   }, [user?.email, user?.name, user?.avatarUrl]);
 
+  // Hiển thị thông báo nếu có alertMessage
   useEffect(() => {
     if (alertMessage?.type) {
       setOpenSnackbar(true);
     }
-  }, [alertMessage?.type, alertMessage?.text]);
-
-  useEffect(() => {
-    setAvatarLoading(avatarUploadMutation.isPending);
-  }, [avatarUploadMutation.isPending]);
-
-  useEffect(() => {
-    setSaving(saveProfileMutation.isPending);
-  }, [saveProfileMutation.isPending]);
+  }, [alertMessage]);
 
   return (
     <PageContainer>
@@ -152,9 +173,9 @@ function ProfilePage() {
           <ProfileHeaderWrapper>Personal info</ProfileHeaderWrapper>
           <UserProfileInfoWrapper>
             <UserAvatarContainer
-              sx={{ position: "relative", opacity: isAvatarLoading ? 0.5 : 1 }}
+              sx={{ position: "relative", opacity: avatarUploadMutation?.isPending ? 0.5 : 1 }}
             >
-              {isAvatarLoading && (
+              {avatarUploadMutation?.isPending && (
                 <Box
                   sx={{
                     position: "absolute",
@@ -182,7 +203,7 @@ function ProfilePage() {
                 <Button
                   variant="outlined"
                   component="label"
-                  disabled={isAvatarLoading}
+                  disabled={avatarUploadMutation?.isPending}
                 >
                   Upload Avatar
                   <input
@@ -196,9 +217,9 @@ function ProfilePage() {
             </UserAvatarContainer>
 
             <UserInfoFormContainer
-              sx={{ position: "relative", opacity: isSaving ? 0.5 : 1 }}
+              sx={{ position: "relative", opacity: saveProfileMutation?.isPending ? 0.5 : 1 }}
             >
-              {isSaving && (
+              {saveProfileMutation?.isPending && (
                 <Box
                   sx={{
                     position: "absolute",
@@ -221,12 +242,7 @@ function ProfilePage() {
                 label="Email"
                 value={email}
                 margin="normal"
-                disabled={isSaving}
-                slotProps={{
-                  input: {
-                    readOnly: true,
-                  },
-                }}
+                disabled
               />
               <TextField
                 fullWidth
@@ -234,19 +250,22 @@ function ProfilePage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 margin="normal"
-                disabled={isSaving}
+                disabled={saveProfileMutation?.isPending}
               />
-              <Stack
-                direction="row"
-                justifyContent="flex-end"
-                sx={{ marginTop: 2 }}
-              >
+              <Stack direction="row" justifyContent="space-between" sx={{ marginTop: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => setChangePasswordOpen(true)}
+                >
+                  Change Password
+                </Button>
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={handleSave}
                   sx={{ color: "white" }}
-                  disabled={isSaving}
+                  disabled={saveProfileMutation?.isPending}
                 >
                   Save
                 </Button>
@@ -256,9 +275,53 @@ function ProfilePage() {
         </UserProfileWrapper>
       </BasePadding>
 
+      {/* Modal Change Password */}
+      <Modal open={isChangePasswordOpen} onClose={() => setChangePasswordOpen(false)}>
+        <Box sx={{ padding: 4, background: "white", borderRadius: 2, width: "300px", margin: "auto", marginTop: "10%" }}>
+          <Typography variant="h6" sx={{ marginBottom: 2, color: 'black' }}>
+            Change Password
+          </Typography>
+          <TextField
+            fullWidth
+            label="Current Password"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="New Password"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Confirm Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            margin="normal"
+          />
+          <Stack direction="row" justifyContent="flex-end" sx={{ marginTop: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleChangePassword}
+              disabled={isPendingChangePassword}
+            >
+              {isPendingChangePassword ? <CircularProgress size={20} /> : "Change"}
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
+
+      {/* Snackbar */}
       <Snackbar
         open={openSnackbar}
-        autoHideDuration={5000}
+        autoHideDuration={3000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       >

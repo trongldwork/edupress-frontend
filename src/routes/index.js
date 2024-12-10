@@ -8,7 +8,16 @@ import ProfilePage from "../pages/ProfilePage/ProfilePage"
 import MyCourses from "../pages/MyCourse/MyCourses"
 import AdminHomePage from "../pages/Admin/AdminHomePage"
 import ListCoursePage from "../pages/Admin/CourseManage/ListCoursePage"
+import BlogPage from "../pages/BlogPage/BlogPage"
 import { Title } from "@mui/icons-material"
+import ReviewCourseRegister from "../pages/Admin/ReviewCourseRegister/ReviewCourseRegister"
+import UserManagePage from "../pages/Admin/UserManage/UserManagePage"
+import EditCourseDetails from "../pages/CourseEdit/EditCourseDetails"
+import ForgotPassword from "../pages/ResetPassword/ForgotPassword"
+import VerifyOTP from "../pages/ResetPassword/VerifyOTP"
+import ResetPassword from "../pages/ResetPassword/ResetPassword"
+import PaymentPage from "../pages/PaymentPage/PaymentPage"
+
 export const routes = [
     {
         path: '/sign-in',
@@ -31,6 +40,11 @@ export const routes = [
         adminManage: false
     },
     {
+        path: '/blog',
+        page: BlogPage,
+        adminManage: false
+    },
+    {
         path: '/course/:urlSlug',
         page: CourseDetailsPage,
         adminManage: false
@@ -50,9 +64,34 @@ export const routes = [
         page: MyCourses,
         adminManage: false
     },
+    {
+        path: '/payment',
+        page: PaymentPage,
+        adminManage: false
+    },
+    {
+        path: '/course/:courseId/edit',
+        page: EditCourseDetails,
+        adminManage: false
+    },
     { 
         path: '*',
         page: NotFoundPage,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery',
+        page: ForgotPassword,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery/otp',
+        page: VerifyOTP,
+        adminManage: false
+    },
+    { 
+        path: '/account/recovery/reset-password',
+        page: ResetPassword,
         adminManage: false
     },
     { 
@@ -66,7 +105,21 @@ export const routes = [
         path: '/admin/course-management',
         page: ListCoursePage,
         showInDashBoardLayout: true,
-        title: 'Quản lý khoá học',
+        title: 'Course Management',
+        adminManage: true
+    },
+    { 
+        path: '/admin/review-course-register',
+        page: ReviewCourseRegister,
+        showInDashBoardLayout: true,
+        title: 'Review Course Register',
+        adminManage: true
+    },
+    {
+        path: '/admin/user-management',
+        page: UserManagePage,
+        showInDashBoardLayout: true,
+        title: 'User Management',
         adminManage: true
     }
 ]
